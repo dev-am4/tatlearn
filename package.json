@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check": "node --check src/content.js && node --check src/store.js && node --check src/needleData.js"
+    "check": "node --check src/content.js && node --check src/store.js && node --check src/needleData.js && node --check src/practicePlan.js"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

@@ -1,175 +1,149 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {
-Home,BookOpen,PenLine,Sparkles,ShieldCheck,CalendarDays,ClipboardList,BarChart3,
-ArrowUpRight,ArrowRight,ArrowLeft,Check,CheckCircle2,Bookmark,Search,Clock,
-Target,Pause,Play,RotateCcw,Download,Upload,Trash2,ChevronRight,ChevronDown,
-Layers,Info,AlertTriangle,ExternalLink,GraduationCap,Menu,X,Plus,Share2,Palette
-} from 'lucide-react';
-import {tracks,lessons,modulesOrder,goldSteps,goldColors,gear,thirtyDays,questions,refs} from './content.js';
+import {ArrowLeft,ArrowRight,BookOpen,Check,CheckCircle2,ChevronRight,Clock,Download,Image as ImageIcon,Info,Menu,Pause,Play,RotateCcw,Search,ShieldCheck,Timer,Upload, X} from 'lucide-react';
+import {stages,practicePlan,stageFor} from './practicePlan.js';
+import {lessons,gear,thirtyDays,refs} from './content.js';
 import {useProgress,exportProgress,validImport,defaultProgress} from './store.js';
-import {AnubisArt,GoldPlate} from './components/Art.jsx';
-import PracticeCanvas from './components/PracticeCanvas.jsx';
+import VisualAcademy from './components/VisualAcademy.jsx';
 import PracticeSheets from './components/PracticeSheets.jsx';
 import NeedleStudio from './components/NeedleStudio.jsx';
-import VisualAcademy,{VisualLessonImage} from './components/VisualAcademy.jsx';
+import PracticeCanvas from './components/PracticeCanvas.jsx';
 import {KnowledgeTest,SleevePlanner} from './components/Extras.jsx';
-const NAV=[
-{id:'home',title:'ภาพรวม',sub:'Dashboard',icon:Home},
-{id:'learn',title:'บทเรียน',sub:'Learning',icon:BookOpen},
-{id:'visuals',title:'ภาพสอน',sub:'Visual Learning',icon:Palette},
-{id:'worksheets',title:'แบบฝึกจริง',sub:'Worksheets',icon:ClipboardList},
-{id:'practice',title:'ห้องฝึก',sub:'Practice Lab',icon:PenLine},
-{id:'needles',title:'ฝึกหัวเข็ม',sub:'Needle Studio',icon:Target},
-{id:'gold',title:'สีทอง',sub:'Metallic Lab',icon:Sparkles},
-{id:'anubis',title:'อนูบิส',sub:'Masterclass',icon:Target},
-{id:'sleeve',title:'วางลายแขน',sub:'Sleeve Planner',icon:Layers},
-{id:'quiz',title:'แบบทดสอบ',sub:'Knowledge Check',icon:GraduationCap},
-{id:'roadmap',title:'แผน 30 วัน',sub:'Training path',icon:CalendarDays},
-{id:'tools',title:'อุปกรณ์',sub:'Setup & safety',icon:ShieldCheck},
-{id:'journal',title:'บันทึก',sub:'Progress',icon:BarChart3}
+
+const MENU=[
+{label:'คลังความรู้',id:'knowledge',icon:BookOpen},
+{label:'ภาพสอนทั้งหมด',id:'visuals',icon:ImageIcon},
+{label:'แผ่นฝึก A4',id:'worksheets',icon:Download},
+{label:'ฝึกแยกหัวเข็ม',id:'needles',icon:Timer},
+{label:'กระดานฝึกดิจิทัล',id:'canvas',icon:Play},
+{label:'แบบทดสอบความรู้',id:'quiz',icon:CheckCircle2},
+{label:'แผนฝึก 30 วัน',id:'calendar',icon:Clock},
+{label:'ออกแบบลายเต็มแขน',id:'sleeve',icon:ImageIcon},
+{label:'อุปกรณ์และความปลอดภัย',id:'safety',icon:ShieldCheck},
+{label:'บันทึกผลและสำรองข้อมูล',id:'history',icon:Download}
 ];
-const ANUBIS_STEPS=[
-['วางลาย','กำหนดกรอบหู ปาก และสัดส่วนครึ่งตัว'],
-['โครงเส้น','วางขอบนอกและเส้นหลักให้ชัด'],
-['มวลดำ','ล็อกเงาใหญ่ก่อนใส่รายละเอียด'],
-['แสงเงา','แยกแก้ม กราม และส่วนลำคอ'],
-['พื้นผิว','เพิ่มแสงสะท้อนและขนตามรูปหน้า'],
-['เกราะ','วางทองบนชิ้นเกราะที่รับแสง'],
-['เก็บวัสดุ','ใส่ร่อง ขอบ และรายละเอียดโลหะ'],
-['สีแดง','เน้นดวงตาและอัญมณีเพียงบางจุด'],
-['ไฮไลต์','ใส่แสงคมเล็กน้อยและตรวจภาพรวม']
-];
-const formatTime=s=>`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-const todayKey=(date=new Date())=>[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
-function SectionHead({eyebrow,title,description,action}){return <div className="section-head"><div><p className="eyebrow">{eyebrow}</p><h2>{title}</h2>{description&&<p className="section-desc">{description}</p>}</div>{action}</div>}
-function Meter({value=0,thin=false}){return <div className={'meter '+(thin?'meter-thin':'')} role="progressbar" aria-valuenow={value} aria-valuemin="0" aria-valuemax="100"><span style={{width:Math.min(100,Math.max(0,value))+'%'}}/></div>}
-function IconRound({icon:Icon}){return <span className="icon-round"><Icon size={19} strokeWidth={1.8}/></span>}
-function Callout({children}){return <div className="callout"><Info size={17}/><span>{children}</span></div>}
-function LessonRow({lesson,done,bookmarked,onClick}){return <button className="lesson-row" onClick={onClick}><span className={'lesson-check '+(done?'on':'')}>{done?<Check size={14}/>:lesson.id.slice(1)}</span><span className="lesson-main"><strong>{lesson.title}</strong><small>{tracks.find(t=>t.id===lesson.track)?.label} · {lesson.minutes} นาที</small></span>{bookmarked&&<Bookmark className="bookmarked-icon" size={14} fill="currentColor"/>}<ChevronRight className="muted" size={17}/></button>}
-function App({trackFilter,setTrack}){
- const {progress,setProgress,update,toggleCompleted,toggleBookmark,addSession}=useProgress();
- const [view,setView]=useState('home'),[selectedLesson,setSelectedLesson]=useState(null),[mobileMenu,setMobileMenu]=useState(false);
- const [toast,setToast]=useState(''),timerRef=useRef(null),[seconds,setSeconds]=useState(0),[timerRunning,setTimerRunning]=useState(false);
- const completed=progress.completed.filter(x=>lessons.some(l=>l.id===x));
- const lessonPct=Math.round(completed.length/lessons.length*100);
- const doneDays=progress.completedDays.length;
- const totalMinutes=progress.sessions.reduce((sum,x)=>sum+(Number(x.minutes)||0),0);
- const currentDay=thirtyDays.find(d=>!progress.completedDays.includes(d.day))||thirtyDays[29];
- const firstLesson=lessons.find(l=>!progress.completed.includes(l.id))||lessons[0];
- const guideLesson=lessons.find(l=>l.id===progress.lastLesson)||firstLesson;
- const todaysSessions=progress.sessions.filter(s=>(s.at||'').slice(0,10)===todayKey()).length;
- const weekCount=progress.sessions.filter(s=>Date.now()-new Date(s.at).getTime()<7*864e5).length;
- const go=(next)=>{setView(next);setSelectedLesson(null);setMobileMenu(false);window.scrollTo({top:0,behavior:'instant'})};
- const openLesson=(id)=>{setSelectedLesson(id);setView('learn');window.scrollTo({top:0,behavior:'instant'})};
- useEffect(()=>{document.title=(NAV.find(x=>x.id===view)?.title||'TATLEARN')+' | TATLEARN'},[view]);
- useEffect(()=>{if(!timerRunning)return;timerRef.current=setInterval(()=>setSeconds(s=>s+1),1000);return()=>clearInterval(timerRef.current)},[timerRunning]);
- useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),3500);return()=>clearTimeout(t)},[toast]);
- const notify=(t)=>setToast(t);
- const logPractice=(kind,strokes)=>{if(!strokes){notify('เริ่มฝึกเส้นก่อนบันทึก');return}addSession({type:kind,minutes:Math.round(seconds/6)/10,notes:'Digital Practice Lab — '+strokes+' strokes',rating:0});setTimerRunning(false);setSeconds(0);notify('บันทึกการฝึกแล้ว')};
- const downloadAnubis=()=>{const svg=document.querySelector('.master-art .anubis-art');if(!svg)return;const copy=svg.cloneNode(true);copy.setAttribute('xmlns','http://www.w3.org/2000/svg');const data=new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}),url=URL.createObjectURL(data),a=document.createElement('a');a.href=url;a.download='tatlearn-anubis-study.svg';a.click();URL.revokeObjectURL(url)};
- return <div className="app-shell">
-  <aside className={'sidebar '+(mobileMenu?'open':'')} aria-label="เมนูหลัก">
-   <div className="brand" onClick={()=>go('home')} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&go('home')}><span className="brand-emblem">T<span>.</span></span><div><strong>TATLEARN</strong><small>THE TATTOO STUDIO</small></div></div>
-   <div className="side-label">YOUR WORKSPACE</div>
-   <nav className="side-nav">{NAV.map(n=><button key={n.id} className={'nav-link '+(view===n.id?'active':'')} onClick={()=>go(n.id)}><n.icon size={19} strokeWidth={1.8}/><span>{n.title}</span>{view===n.id&&<span className="nav-indicator"/>}</button>)}</nav>
-   <div className="sidebar-bottom"><span className="live-dot"/><div><strong>SYNTHETIC SKIN MODE</strong><small>ฝึกบนหนังเทียมก่อนสักคนจริง</small></div></div>
-  </aside>
-  {mobileMenu&&<button className="drawer-backdrop" aria-label="ปิดเมนู" onClick={()=>setMobileMenu(false)}/>}
-  <main className="main-area">
-   <header className="topbar"><div className="topbar-left"><button className="icon-btn hamburger" aria-label="เปิดเมนู" onClick={()=>setMobileMenu(true)}><Menu size={21}/></button><div className="crumb">TATLEARN <ChevronRight size={14}/> <strong>{NAV.find(n=>n.id===view)?.sub}</strong></div></div><div className="topbar-right"><span className="topbar-mark"><span className="live-dot"/> PRACTICE MODE</span><button className="avatar" title="บันทึกการฝึก" aria-label="เปิดบันทึก" onClick={()=>go('journal')}>F</button></div></header>
-   <div className="page-content" key={view+'-'+(selectedLesson||'') }>
-    {view==='home'&&<div className="fade-in">
-      <section className="home-hero"><div className="hero-content"><span className="hero-kicker"><span className="red-dash"/> LEARN · PRACTICE · MASTER</span><h1>ฝึกให้แม่น<br/><em>ก่อนลงหมึกจริง.</em></h1><p>ทุกเทคนิคในสตูดิโอเดียว ตั้งแต่เส้นแรกไปจนถึงงาน Anubis บนหนังเทียม</p><div className="hero-actions"><button className="btn primary" onClick={()=>openLesson(guideLesson.id)}>เรียนต่อ <ArrowUpRight size={17}/></button><button className="btn quiet" onClick={()=>go('practice')}>เปิดห้องฝึก <ArrowRight size={16}/></button></div><span className="hero-foot">POSEIDON / BEGINNER TRACK <span>•</span> THAI EDITION</span></div><div className="hero-visual"><div className="hero-red-glow"/><AnubisArt stage={9} mini/></div></section>
-      <div className="stats-line"><div><strong>{lessonPct}%</strong><span>ความคืบหน้าบทเรียน</span></div><div><strong>{doneDays}<i>/30</i></strong><span>วันที่ฝึกตามแผน</span></div><div><strong>{progress.sessions.length}</strong><span>รอบฝึกที่บันทึก</span></div></div>
-      <section className="page-section"><SectionHead eyebrow="PICK UP WHERE YOU LEFT OFF" title="ฝึกต่อจากตรงนี้" action={<button className="text-action" onClick={()=>go('roadmap')}>แผน 30 วัน <ArrowUpRight size={16}/></button>}/><div className="continue-block"><div className="continue-icon"><BookOpen size={22}/></div><div className="continue-copy"><span className="micro">LESSON · {guideLesson.minutes} MIN</span><h3>{guideLesson.title}</h3><p>{guideLesson.why}</p></div><button className="circle-forward" title="เปิดบทเรียน" aria-label="เปิดบทเรียน" onClick={()=>openLesson(guideLesson.id)}><ArrowRight size={20}/></button></div></section>
-      <section className="visual-home"><div className="visual-home-head"><div><span className="eyebrow">VISUAL LEARNING · ALL COLORS</span><h2>เห็นภาพก่อน แล้วค่อยลงมือฝึก</h2><p>สีแดง น้ำเงิน เขียว ม่วง ทอง เงิน โรสโกลด์ พร้อมภาพเดินเส้น ลงเงา และ Anubis</p></div><button className="text-action" onClick={()=>go('visuals')}>ภาพสอนทั้งหมด <ArrowUpRight size={17}/></button></div><div className="visual-home-grid"><button onClick={()=>go('visuals')}><img src="/visual-lessons/05-color.svg" alt="ตัวอย่างภาพสอนสีแดง น้ำเงิน เขียว และม่วง" loading="lazy"/><span>COLOR STUDY <ArrowUpRight size={14}/></span></button><button onClick={()=>go('visuals')}><img src="/visual-lessons/10-anubis.svg" alt="ตัวอย่างการฝึกสัก Anubis" loading="lazy"/><span>ANUBIS STUDY <ArrowUpRight size={14}/></span></button></div></section>
-      <div className="workbook-home-link"><div><span className="micro">YOUR PRACTICE SHEETS</span><strong>ฝึกจากแผ่นจริง 10 ชุด</strong><p>แบบฝึก A4 · คุมเส้น · ลงเงา · ทอง · Anubis</p></div><button className="btn small primary" onClick={()=>go('worksheets')}>เปิดแบบฝึก <ArrowRight size={16}/></button></div>
-      <div className="needle-home-link"><div><span className="micro">NEW / NEEDLE STUDIO</span><strong>ฝึกเฉพาะหัวเข็ม 3RL · 5RL · 7RL · 9RM</strong><p>เปรียบเทียบลายเส้นและบันทึกคะแนนรายหัวเข็ม</p></div><button className="btn small quiet" onClick={()=>go('needles')}>เริ่มฝึก <ArrowRight size={15}/></button></div>
-      <section className="page-section"><SectionHead eyebrow="SKILL CATEGORIES" title="เลือกทักษะที่อยากฝึก" description="เรียนเป็นเรื่องสั้น กระชับ ทำบนหนังเทียมได้จริง"/><div className="track-grid">{tracks.map((t,i)=>{const n=lessons.filter(l=>l.track===t.id),c=n.filter(l=>progress.completed.includes(l.id)).length;return <button key={t.id} className="track-row" onClick={()=>{go('learn');setTrackFilter(t.id)}}><span className="track-num">{t.tag}</span><div className="track-copy"><h3>{t.label}</h3><p>{t.desc}</p></div><span className="track-progress">{c}/{n.length}</span><ChevronRight size={19}/></button>})}</div></section>
-      <section className="feature-slab" onClick={()=>go('gold')} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&go('gold')}><div><span className="eyebrow">SIGNATURE MASTERCLASS</span><h2>Metallic Gold<br/>Effect.</h2><p>ลองเปลี่ยนเกราะสีเหลืองธรรมดาให้ดูเป็นโลหะ 3 มิติ ผ่านภาพจำลอง 8 ชั้น</p><span className="fake-link">เข้า Gold Lab <ArrowUpRight size={16}/></span></div><div className="feature-art"><GoldPlate stage={8}/></div></section>
-      <section className="page-section"><SectionHead eyebrow="YOUR NEXT PROJECT" title="Anubis Masterclass" action={<button className="text-action" onClick={()=>go('anubis')}>ดูโปรเจกต์ <ArrowUpRight size={16}/></button>}/><div className="project-link"><span className="project-thumb"><AnubisArt stage={9} mini/></span><div><strong>จากเส้นร่างสู่เทพอนูบิส</strong><p>ดำดุดัน · เกราะทอง · ดวงตาแดง · เรขาคณิต</p></div><ArrowRight size={20}/></div></section>
-    </div>}
-    {view==='visuals'&&<VisualAcademy progress={progress} update={update} onLesson={openLesson} onGo={go}/>}
-    {view==='needles'&&<NeedleStudio progress={progress} addSession={addSession} onLesson={openLesson} onWorksheets={()=>go('worksheets')}/>}
-    {view==='worksheets'&&<PracticeSheets progress={progress} update={update} onLesson={openLesson} onGold={()=>go('gold')} onAnubis={()=>go('anubis')}/>}
-    {view==='learn'&&<LessonsView progress={progress} selectedLesson={selectedLesson} setSelectedLesson={setSelectedLesson} toggleCompleted={toggleCompleted} toggleBookmark={toggleBookmark} openLesson={openLesson} notify={notify} setView={go} onFilter={setTrackFilter} filter={trackFilter}/>}
-    {view==='practice'&&<div className="fade-in"><SectionHead eyebrow="PRACTICE / 01" title="ห้องฝึกเดินเส้น" description="เลือกไกด์แล้วลากเส้นด้วยนิ้ว ปากกา หรือเมาส์ ฝึกคุมทิศทางก่อนลงหนังเทียม"/><div className="practice-meta"><div><Clock size={16}/><span className="timer-text">{formatTime(seconds)}</span></div><div className="timer-controls"><button className="btn tiny" onClick={()=>setTimerRunning(!timerRunning)}>{timerRunning?<Pause size={14}/>:<Play size={14}/>} {timerRunning?'พัก':'เริ่มจับเวลา'}</button><button title="เริ่มเวลาใหม่" className="icon-btn" onClick={()=>{setTimerRunning(false);setSeconds(0)}}><RotateCcw size={16}/></button></div></div><PracticeCanvas onLog={logPractice}/><div className="practice-under"><span className="micro">PRACTICE NOTES</span><h3>ดูจังหวะและความสม่ำเสมอ</h3><p>ขณะฝึกบนหนังเทียม ให้เปรียบเทียบตำแหน่งเริ่มและจบ ความหนาเส้น และการรักษาช่องไฟ ไม่ต้องเพิ่มแรงเครื่องเพื่อแก้เส้นสั่น</p><button className="text-action" onClick={()=>openLesson('l01')}>เรียนเดินเส้นให้ลึกขึ้น <ArrowUpRight size={15}/></button></div></div>}
-    {view==='gold'&&<GoldLab notify={notify} update={update} progress={progress} onWorksheets={()=>go('worksheets')}/>}
-    {view==='anubis'&&<AnubisLab progress={progress} update={update} download={downloadAnubis} onWorksheets={()=>go('worksheets')}/>}
-    {view==='quiz'&&<KnowledgeTest progress={progress} update={update}/>}
-    {view==='sleeve'&&<SleevePlanner/>}
-    {view==='roadmap'&&<Roadmap progress={progress} update={update} openLesson={openLesson}/>}
-    {view==='tools'&&<Toolkit progress={progress} update={update}/>}
-    {view==='journal'&&<Journal progress={progress} setProgress={setProgress} addSession={addSession} notify={notify} lessonPct={lessonPct} totalMinutes={totalMinutes} weekCount={weekCount}/>}
-    <footer className="footer"><span>TATLEARN © 2026 · LEARN THE CRAFT, RESPECT THE SKIN.</span><span>การฝึกดิจิทัล/หนังเทียมไม่ใช่ใบรับรองให้สักคนจริง</span></footer>
+const pad=n=>String(Math.max(0,n)).padStart(2,'0');
+const clock=s=>pad(Math.floor(s/60))+':'+pad(Math.floor(s%60));
+const roundedMinutes=seconds=>Math.round(seconds/6)/10;
+const completedSet=sessions=>new Set((sessions||[]).filter(s=>s.practicePassed===true&&s.practiceId).map(s=>s.practiceId));
+const stageTasks=stage=>practicePlan.filter(t=>t.stage===stage);
+const getNext=(stage,passed)=>stageTasks(stage).find(t=>!passed.has(t.id))||stageTasks(stage)[0];
+const lessonVisual={f02:'01-setup',f03:'02-needle',f04:'01-setup',f05:'03-linework',l01:'03-linework',l02:'03-linework',l03:'03-linework',s01:'04-shading',s03:'04-shading',c01:'05-color',c02:'08-gold',c03:'09-metals',c06:'10-anubis'};
+function SmallEmpty({children}){return <p className="studio-empty">{children}</p>}
+function LessonPage({id,onBack,progress,toggleCompleted}){
+ const lesson=lessons.find(l=>l.id===id);
+ if(!lesson)return <button className="studio-link" onClick={onBack}>กลับไปคลังความรู้</button>;
+ const visual=lessonVisual[id];
+ return <div className="studio-article">
+ <button className="studio-back" onClick={onBack}><ArrowLeft size={17}/> คลังความรู้</button>
+ <h1>{lesson.title}</h1>
+ {visual&&<img className="studio-article-image" src={'/visual-lessons/'+visual+'.svg'} alt={'ภาพสอน '+lesson.title}/>}
+ <h3>หลักการ</h3><p>{lesson.core}</p>
+ <h3>ลองทำตาม</h3><p>{lesson.task}</p>
+ <h3>จุดที่ควรระวัง</h3><p>{lesson.tip}</p>
+ <h3>ตรวจงาน</h3><p>{lesson.check}</p>
+ <button className="studio-primary" onClick={()=>toggleCompleted(lesson.id)}>{progress.completed.includes(lesson.id)?'เรียนแล้ว ✓':'บันทึกว่าอ่านบทนี้แล้ว'} <Check size={16}/></button>
+ </div>
+}
+function PracticeSession({task,progress,onBack,onSaved,onNext}){
+ const [mode,setMode]=useState('stopwatch');
+ const [limit,setLimit]=useState(task.minutes*60);
+ const [stored,setStored]=useState(0),[running,setRunning]=useState(false),[now,setNow]=useState(Date.now());
+ const startAt=useRef(null);
+ const [checks,setChecks]=useState([false,false,false]),[notes,setNotes]=useState(''),[result,setResult]=useState(null);
+ const [ownPhoto,setOwnPhoto]=useState(null),[large,setLarge]=useState(false);
+ useEffect(()=>{if(!running)return;const interval=setInterval(()=>setNow(Date.now()),300);return()=>clearInterval(interval)},[running]);
+ useEffect(()=>()=>{if(ownPhoto)URL.revokeObjectURL(ownPhoto)},[ownPhoto]);
+ const count=stored+(running&&startAt.current!==null?Math.max(0,Math.floor((now-startAt.current)/1000)):0);
+ const seconds=mode==='countdown'?Math.max(0,limit-count):count;
+ useEffect(()=>{if(mode==='countdown'&&running&&count>=limit){setStored(limit);setRunning(false);startAt.current=null}},[running,mode,count,limit]);
+ const changeMode=m=>{setMode(m);setRunning(false);startAt.current=null;setStored(0);setResult(null)};
+ const start=()=>{if(running)return;startAt.current=Date.now();setNow(Date.now());setRunning(true)};
+ const pause=()=>{if(!running)return;setStored(s=>s+Math.max(0,Math.floor((Date.now()-startAt.current)/1000)));setRunning(false);startAt.current=null};
+ const reset=()=>{setStored(0);setRunning(false);startAt.current=null;setResult(null)};
+ const save=()=>{const actual=stored+(running&&startAt.current!==null?Math.floor((Date.now()-startAt.current)/1000):0);
+  if(actual<=0)return;
+  pause();
+  const passed=checks.every(Boolean);
+  onSaved({type:task.title,practiceId:task.id,stageId:task.stage,practicePassed:passed,checks:checks.map((checked,i)=>({label:task.checks[i],checked})),rating:checks.filter(Boolean).length,minutes:roundedMinutes(actual),elapsedSeconds:actual,mode,targetSeconds:limit,notes:notes.trim(),template:task.sheet||task.image});
+  setResult({passed,score:checks.filter(Boolean).length,seconds:actual});
+ };
+ const changePhoto=e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>8*1024*1024){window.alert('กรุณาเลือกรูปภาพไม่เกิน 8 MB');return}setOwnPhoto(URL.createObjectURL(file));e.target.value=''};
+ const attempts=(progress.sessions||[]).filter(s=>s.practiceId===task.id);
+ return <div className="studio-session">
+   <button className="studio-back" onClick={onBack}><ArrowLeft size={17}/> กลับไปเลือกแบบฝึก</button>
+   <div className="studio-session-heading"><span>{stageFor(task.stage).title}</span><h1>{task.title}</h1></div>
+   <button className="studio-main-image" onClick={()=>setLarge(true)} aria-label="ขยายภาพต้นแบบ"><img src={task.image} alt={'ภาพตัวอย่างสำหรับ '+task.title}/><span><ImageIcon size={16}/> ดูภาพใหญ่</span></button>
+   <div className="studio-step-heading"><span>01</span><h2>ดูตัวอย่างแล้วทำตาม</h2></div>
+   <ol className="studio-instructions">{task.steps.map((s,i)=><li key={i}>{s}</li>)}</ol>
+   {task.sheet&&<a className="studio-sheet-action" href={task.sheet} download={'tatlearn-'+task.id+'.svg'}><Download size={17}/> โหลดแบบฝึกสำหรับพิมพ์ A4 <ChevronRight size={17}/></a>}
+   <div className="studio-step-heading"><span>02</span><h2>จับเวลาลองทำ</h2></div>
+   <div className="studio-timer">
+    <div className="studio-mode-switch"><button className={mode==='stopwatch'?'active':''} onClick={()=>changeMode('stopwatch')}>จับเวลาจริง</button><button className={mode==='countdown'?'active':''} onClick={()=>changeMode('countdown')}>ตั้งเวลาท้าทาย</button></div>
+    {mode==='countdown'&&<div className="studio-duration"><span>เวลาที่ต้องการฝึก</span><select value={limit} onChange={e=>{reset();setLimit(Number(e.target.value))}}>{[5,10,15,20,25,30,40,45,60].map(n=><option key={n} value={n*60}>{n} นาที</option>)}</select></div>}
+    <div className="studio-clock" aria-live="off">{clock(seconds)}</div>
+    <div className="studio-timer-controls"><button className="studio-primary" onClick={running?pause:start} disabled={mode==='countdown'&&seconds===0}>{running?<Pause size={18}/>:<Play size={18}/>} {running?'พักเวลา':count>0?'ทำต่อ':'เริ่มฝึก'}</button><button className="studio-icon-button" aria-label="เริ่มนับเวลาใหม่" onClick={reset}><RotateCcw size={20}/></button></div>
    </div>
-  </main>
-  <nav className="mobile-nav" aria-label="เมนูมือถือ">{NAV.filter(n=>['home','learn','visuals','practice'].includes(n.id)).map(n=><button key={n.id} className={view===n.id?'selected':''} onClick={()=>go(n.id)}><n.icon size={20} strokeWidth={view===n.id?2.2:1.7}/><span>{n.title}</span></button>)}<button className={['home','learn','worksheets','practice'].includes(view)?'':'selected'} onClick={()=>setMobileMenu(true)} aria-label="เปิดเมนูเพิ่มเติม"><Menu size={20}/><span>เพิ่มเติม</span></button></nav>
-  {toast&&<div role="status" className="toast"><CheckCircle2 size={17}/>{toast}</div>}
+   <div className="studio-step-heading"><span>03</span><h2>ทดสอบผลงานตัวเอง</h2></div>
+   <div className="studio-checklist">{task.checks.map((c,i)=><label key={i}><input type="checkbox" checked={checks[i]} onChange={e=>{setChecks(x=>x.map((v,j)=>i===j?e.target.checked:v));setResult(null)}}/><span className="studio-checkbox"><Check size={15}/></span><span>{c}</span></label>)}</div>
+   <p className="studio-note-small">เช็กเฉพาะข้อที่ทำได้จริง ถ้ายังไม่ผ่านสามารถกลับมาฝึกซ้ำได้</p>
+   <div className="studio-photo-tools"><label className="studio-photo-button"><ImageIcon size={17}/> เปรียบเทียบกับรูปที่ฝึก<input hidden type="file" accept="image/*" onChange={changePhoto}/></label>{ownPhoto&&<button className="studio-link" onClick={()=>setOwnPhoto(null)}>เอารูปออก</button>}</div>
+   {ownPhoto&&<div className="studio-compare"><img src={task.image} alt="ภาพตัวอย่างต้นแบบ"/><img src={ownPhoto} alt="รูปชิ้นงานผู้ใช้"/></div>}
+   <label className="studio-note-field">บันทึกจุดที่ควรแก้ (ไม่บังคับ)<textarea rows={2} placeholder="เช่น เส้นโค้งช่วงท้ายยังสั่น" value={notes} onChange={e=>setNotes(e.target.value)}/></label>
+   <button className="studio-primary studio-save" disabled={count<=0} onClick={save}><CheckCircle2 size={17}/> บันทึกผลการฝึก</button>
+   {result&&<div className="studio-result"><strong>{result.passed?'ผ่านการประเมินตนเอง':'บันทึกแล้ว — ฝึกเพิ่มได้'}</strong><p>ได้ {result.score}/3 ข้อ · ใช้เวลา {clock(result.seconds)}</p><button className="studio-link" onClick={onNext}>ไปแบบฝึกถัดไป <ArrowRight size={17}/></button></div>}
+   {attempts.length>0&&<p className="studio-attempts">เคยฝึก {attempts.length} ครั้ง {attempts.some(s=>s.practicePassed)?'· ผ่านแล้ว':'· ยังฝึกต่อได้'}</p>}
+   <p className="studio-safety-note"><Info size={15}/> แบบฝึกสำหรับหนังเทียม ไม่ใช่การรับรองความพร้อมสักบนผิวคน</p>
+   {large&&<div className="studio-lightbox" role="dialog" aria-modal="true" aria-label="ภาพต้นแบบขยาย"><button className="studio-lightbox-close" onClick={()=>setLarge(false)} aria-label="ปิด"><X size={23}/></button><img src={task.image} alt={'ภาพตัวอย่าง '+task.title}/></div>}
  </div>;
- function setTrackFilter(x){setTrack(x)}
 }
-const lessonVisualMap={f02:'setup',f03:'needle',f04:'setup',f05:'setup',l01:'linework',l02:'linework',l03:'linework',l06:'linework',l07:'linework',s01:'shading',s02:'shading',s03:'shading',c01:'color',c02:'gold',c03:'metals',c04:'color',c05:'mistakes',c06:'anubis',c07:'anubis'};
-function LessonsView({progress,selectedLesson,setSelectedLesson,toggleCompleted,toggleBookmark,openLesson,filter,onFilter,setView}){
- const [query,setQuery]=useState(''),[onlySaved,setOnlySaved]=useState(false);
- const data=lessons.filter(l=>(filter==='all'||l.track===filter)&&(!onlySaved||progress.bookmarks.includes(l.id))&&((l.title+' '+l.core+' '+l.task).toLowerCase().includes(query.trim().toLowerCase())));
- const lesson=lessons.find(l=>l.id===selectedLesson);
- const track=tracks.find(t=>t.id===lesson?.track);
- if(lesson)return <div className="fade-in detail-page"><button className="back-text" onClick={()=>setSelectedLesson(null)}><ArrowLeft size={16}/> กลับไปบทเรียน</button><div className="detail-header"><p className="eyebrow">{track?.en} · {lesson.minutes} MIN</p><h1>{lesson.title}</h1><p className="lead">{lesson.why}</p><div className="detail-actions"><button className={'btn '+(progress.completed.includes(lesson.id)?'outline-success':'primary')} onClick={()=>toggleCompleted(lesson.id)}><CheckCircle2 size={17}/>{progress.completed.includes(lesson.id)?'เรียนแล้ว · กดยกเลิก':'ทำเครื่องหมายว่าเรียนแล้ว'}</button><button className="icon-btn bookmark-large" aria-label="บันทึกบทเรียน" title="บันทึกบทเรียน" onClick={()=>toggleBookmark(lesson.id)}><Bookmark size={20} fill={progress.bookmarks.includes(lesson.id)?'currentColor':'none'}/></button></div></div>
- {lessonVisualMap[lesson.id]&&<VisualLessonImage id={lessonVisualMap[lesson.id]} caption/>}
- <div className="learning-body"><div className="learning-block"><span className="step-mark">01 / UNDERSTAND</span><h2>เข้าใจหลักการ</h2><p>{lesson.core}</p></div><div className="learning-block"><span className="step-mark">02 / DO THE WORK</span><h2>แบบฝึกลงมือทำ</h2><p>{lesson.task}</p></div><div className="learning-block"><span className="step-mark">03 / WATCH OUT</span><h2>สิ่งที่ต้องระวัง</h2><p>{lesson.tip}</p></div><div className="learning-block"><span className="step-mark">04 / SELF-CHECK</span><h2>เกณฑ์ประเมินตัวเอง</h2><p>{lesson.check}</p></div></div>
- <Callout>เนื้อหานี้เป็นการเรียนและฝึกบนหนังเทียมก่อนเท่านั้น การสักบนคนต้องมีผู้ฝึกสอนและระบบป้องกันการติดเชื้อที่เหมาะสม</Callout>
- <div className="lesson-bottom"><button className="btn ghost" onClick={()=>setSelectedLesson(null)}><ArrowLeft size={16}/> รายการบทเรียน</button><button className="btn primary" onClick={()=>{const i=lessons.findIndex(l=>l.id===lesson.id);openLesson(lessons[(i+1)%lessons.length].id)}}>บทเรียนถัดไป <ArrowRight size={17}/></button></div></div>;
- return <div className="fade-in"><SectionHead eyebrow="THE FULL CURRICULUM" title="บทเรียนทั้งหมด" description={lessons.length+' บทเรียน · เริ่มจากพื้นฐานและฝึกตามลำดับ'} action={<button className="btn small quiet" onClick={()=>setView('roadmap')}>แผนฝึก <ArrowUpRight size={15}/></button>}/><div className="curriculum-progress"><div><strong>ความคืบหน้าของคุณ</strong><span>{progress.completed.filter(x=>lessons.some(l=>l.id===x)).length} / {lessons.length} บทเรียน</span></div><Meter value={progress.completed.filter(x=>lessons.some(l=>l.id===x)).length/lessons.length*100}/></div>
- <div className="lesson-filters"><label className="searchbox"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหาบทเรียน เทคนิค หรือคำสำคัญ…" aria-label="ค้นหาบทเรียน"/></label><button className={'filter-saved '+(onlySaved?'on':'')} title="เฉพาะที่บันทึก" onClick={()=>setOnlySaved(!onlySaved)}><Bookmark size={17} fill={onlySaved?'currentColor':'none'}/></button></div>
- <div className="guide-select filter-tabs"><button className={'seg '+(filter==='all'?'selected':'')} onClick={()=>onFilter('all')}>ทั้งหมด</button>{tracks.map(t=><button key={t.id} className={'seg '+(filter===t.id?'selected':'')} onClick={()=>onFilter(t.id)}>{t.label}</button>)}</div>
- <div className="lesson-index">{data.length?data.map(l=><LessonRow key={l.id} lesson={l} done={progress.completed.includes(l.id)} bookmarked={progress.bookmarks.includes(l.id)} onClick={()=>openLesson(l.id)}/>):<p className="empty-state">ไม่พบบทเรียนที่ตรงกับคำค้นหา</p>}</div></div>
+export default function App(){
+ const {progress,setProgress,update,toggleCompleted,addSession}=useProgress();
+ const [screen,setScreen]=useState('home'),[stage,setStage]=useState('basics'),[activeId,setActiveId]=useState(null),[menu,setMenu]=useState(false),[selectedLesson,setSelectedLesson]=useState(null),[search,setSearch]=useState('');
+ const fileRef=useRef(null);
+ const passed=useMemo(()=>completedSet(progress.sessions),[progress.sessions]);
+ const focus=getNext(stage,passed);
+ const stageCompleted=stageTasks(stage).filter(t=>passed.has(t.id)).length;
+ const currentTask=practicePlan.find(t=>t.id===activeId);
+ const openStage=id=>{setStage(id);setScreen('home');setActiveId(null);setMenu(false);window.scrollTo(0,0)};
+ const openTask=id=>{setActiveId(id);setScreen('practice');setMenu(false);window.scrollTo(0,0)};
+ const openMenuPage=id=>{setScreen(id);setActiveId(null);setSelectedLesson(null);setMenu(false);window.scrollTo(0,0)};
+ const openLesson=id=>{setSelectedLesson(id);setScreen('knowledge');setMenu(false);window.scrollTo(0,0)};
+ const nextTask=()=>{const index=practicePlan.findIndex(x=>x.id===activeId);const next=practicePlan[index+1];if(next){setStage(next.stage);openTask(next.id)}else openStage('full')};
+ const imported=async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=validImport(JSON.parse(await file.text()));if(!data)throw Error('invalid');if(window.confirm('นำเข้าข้อมูลและแทนที่ผลการฝึกบนเครื่องนี้?'))setProgress(data)}catch{window.alert('ไฟล์สำรองไม่ถูกต้อง')}e.target.value=''};
+ const menuGo=id=>{if(id==='home')openStage(stage);else openMenuPage(id)};
+ useEffect(()=>{document.title=screen==='practice'&&currentTask?currentTask.title+' | TATLEARN':'TATLEARN — ฝึกสักทีละขั้น'},[screen,currentTask]);
+ return <div className="studio-shell">
+  <header className="studio-header"><button className="studio-logo" onClick={()=>openStage(stage)}>TATLEARN<span>.</span></button><button className="studio-menu-button" onClick={()=>setMenu(true)} aria-label="เปิดเมนูทั้งหมด"><Menu size={24}/></button></header>
+  <main className="studio-main">
+   {screen==='home'&&<>
+    <div className="studio-home-title"><h1>ฝึกสักทีละขั้น</h1><p>ดูตัวอย่าง → ทำตาม → จับเวลา → ตรวจงาน</p></div>
+    <nav className="studio-stages" aria-label="เลือกระดับฝึก">{stages.map(s=><button key={s.id} className={stage===s.id?'active':''} onClick={()=>openStage(s.id)}><span>{s.index}</span>{s.title}</button>)}</nav>
+    <section className="studio-continue"><div><span className="studio-label">ฝึกต่อ</span><h2>{focus.title}</h2><p>{focus.minutes} นาที · {stageFor(focus.stage).title}</p><button className="studio-primary" onClick={()=>openTask(focus.id)}>เริ่มฝึก <ArrowRight size={17}/></button></div><img src={focus.image} alt={focus.title}/></section>
+    <div className="studio-list-head"><h2>{stageFor(stage).title}</h2><span>{stageCompleted}/{stageTasks(stage).length} ผ่าน</span></div>
+    <div className="studio-task-list">{stageTasks(stage).map((task,i)=><button key={task.id} onClick={()=>openTask(task.id)}><img src={task.image} loading="lazy" alt=""/><span className="studio-task-info"><strong>{pad(i+1)} · {task.title}</strong><small>{task.minutes} นาที</small></span>{passed.has(task.id)?<CheckCircle2 className="studio-pass" size={21}/>:<ChevronRight className="studio-chevron" size={20}/>}</button>)}</div>
+    <div className="studio-next-stage">{stage!=='full'&&<button onClick={()=>openStage(stage==='basics'?'colors':'full')}>ดูขั้นต่อไป: {stage==='basics'?'ฝึกสี':'ฝึกภาพเต็ม'} <ArrowRight size={17}/></button>}</div>
+   </>}
+   {screen==='practice'&&currentTask&&<PracticeSession key={activeId} task={currentTask} progress={progress} onBack={()=>openStage(currentTask.stage)} onNext={nextTask} onSaved={addSession}/>}
+   {screen!=='home'&&screen!=='practice'&&<div className="studio-secondary">
+     <button className="studio-back" onClick={()=>openStage(stage)}><ArrowLeft size={17}/> กลับหน้าเรียน</button>
+     {screen==='knowledge'&&(selectedLesson?<LessonPage id={selectedLesson} onBack={()=>setSelectedLesson(null)} progress={progress} toggleCompleted={toggleCompleted}/>:<div><h1>คลังความรู้</h1><label className="studio-search"><Search size={18}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาเรื่องที่อยากรู้"/></label><div className="studio-simple-list">{lessons.filter(l=>(l.title+' '+l.core).toLowerCase().includes(search.toLowerCase().trim())).map(l=><button key={l.id} onClick={()=>setSelectedLesson(l.id)}><span>{l.title}</span><ChevronRight size={18}/></button>)}</div></div>)}
+     {screen==='visuals'&&<VisualAcademy progress={progress} update={update} onLesson={openLesson} onGo={id=>{if(id==='gold'){openTask('gold')}else if(id==='anubis'){openTask('anubis-full')}else openMenuPage(id)}}/>}
+     {screen==='worksheets'&&<PracticeSheets progress={progress} update={update} onLesson={openLesson} onGold={()=>openTask('gold')} onAnubis={()=>openTask('anubis-full')}/>}
+     {screen==='needles'&&<NeedleStudio progress={progress} addSession={addSession} onLesson={openLesson} onWorksheets={()=>openMenuPage('worksheets')}/>}
+     {screen==='canvas'&&<><h1>กระดานฝึกดิจิทัล</h1><PracticeCanvas onLog={(type,strokes)=>{if(strokes>0){addSession({type:'ฝึกวาดดิจิทัล '+type,minutes:0,notes:strokes+' strokes'});window.alert('บันทึกครั้งฝึกแล้ว')}else window.alert('เริ่มลากเส้นก่อนบันทึก')}}/></>}
+     {screen==='quiz'&&<KnowledgeTest progress={progress} update={update}/>}
+     {screen==='sleeve'&&<SleevePlanner/>}
+     {screen==='calendar'&&<><h1>แผนฝึก 30 วัน</h1><div className="studio-simple-list">{thirtyDays.map(day=><button key={day.day} onClick={()=>update(p=>({...p,completedDays:p.completedDays.includes(day.day)?p.completedDays.filter(n=>n!==day.day):[...p.completedDays,day.day]}))}><span>{pad(day.day)} · {day.title}</span>{progress.completedDays.includes(day.day)?<CheckCircle2 className="studio-pass" size={18}/>:<span>{day.minutes} นาที</span>}</button>)}</div></>}
+     {screen==='safety'&&<><h1>อุปกรณ์และความปลอดภัย</h1><div className="studio-simple-list">{gear.map(item=><label key={item.id} className="studio-gear"><input type="checkbox" checked={progress.inventory.includes(item.id)} onChange={()=>update(p=>({...p,inventory:p.inventory.includes(item.id)?p.inventory.filter(x=>x!==item.id):[...p.inventory,item.id]}))}/><span>{item.label}</span></label>)}</div><p className="studio-safety-note">ฝึกบนหนังเทียมก่อนเสมอ ห้ามนำหมึกสำหรับฝึกไปสักคนจริง และควรเรียนสุขอนามัยกับผู้สอนที่มีคุณสมบัติก่อนทำงานผิวคน</p>{refs.map(r=><a className="studio-sheet-action" href={r.url} rel="noopener noreferrer" target="_blank" key={r.url}>{r.title} <ArrowRight size={16}/></a>)}</>}
+     {screen==='history'&&<><h1>บันทึกผลการฝึก</h1><p className="studio-muted">บันทึกทั้งหมด {progress.sessions.length} ครั้ง</p><div className="studio-simple-list">{progress.sessions.map(s=><div key={s.id} className="studio-record"><div><strong>{s.type}</strong><small>{new Date(s.at).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})} · {s.minutes||0} นาที</small>{s.notes&&<p>{s.notes}</p>}</div><span>{s.practiceId?(s.practicePassed?'ผ่าน':'ฝึกซ้ำ'):'บันทึก'}</span></div>)}</div>{!progress.sessions.length&&<SmallEmpty>ยังไม่มีผลการฝึก ลองเริ่มจับเวลาจากแบบฝึกแรก</SmallEmpty>}<div className="studio-data-actions"><button className="studio-secondary-button" onClick={()=>exportProgress(progress)}><Download size={16}/> สำรองข้อมูล</button><input type="file" hidden ref={fileRef} accept=".json,application/json" onChange={imported}/><button className="studio-secondary-button" onClick={()=>fileRef.current?.click()}><Upload size={16}/> นำเข้าข้อมูล</button></div></>}
+   </div>}
+  </main>
+  {screen==='home'&&<p className="studio-footer">ฝึกบนหนังเทียมและกระดาษเท่านั้น · การฝึกด้วยเว็บไม่ทดแทนผู้สอนจริง</p>}
+  {menu&&<><button className="studio-menu-overlay" aria-label="ปิดเมนู" onClick={()=>setMenu(false)}/><aside className="studio-drawer" aria-label="เมนูเพิ่มเติม">
+   <div className="studio-drawer-title"><strong>เมนูทั้งหมด</strong><button aria-label="ปิดเมนู" onClick={()=>setMenu(false)}><X size={22}/></button></div>
+   <div className="studio-drawer-stages">{stages.map(s=><button key={s.id} onClick={()=>openStage(s.id)}>{s.title}<ChevronRight size={17}/></button>)}</div>
+   <div className="studio-drawer-divider"/>
+   {MENU.map(m=><button key={m.id} className="studio-drawer-item" onClick={()=>menuGo(m.id)}><m.icon size={18}/><span>{m.label}</span><ChevronRight size={16}/></button>)}
+  </aside></>}
+ </div>;
 }
-function GoldLab({progress,update,notify,onWorksheets}){
- const [step,setStep]=useState(0),[metal,setMetal]=useState('gold'),[compare,setCompare]=useState(false);
- const item=goldSteps[step];
- const done=progress.completed.includes('gold-lab');
- return <div className="fade-in"><SectionHead eyebrow="COLOR STUDIO / 02" title="Metallic Gold Lab" description="จำลองลำดับชั้นสีที่ทำให้โลหะดูมีมิติ จากดำลึกไปถึงแสงขาวคม"/><div className="metal-toggle"><button className={metal==='gold'?'on':''} onClick={()=>setMetal('gold')}>Gold</button><button className={metal==='silver'?'on':''} onClick={()=>setMetal('silver')}>Silver</button><span>OPTICAL ILLUSION</span></div>
- <div className="gold-stage"><div className="gold-view"><GoldPlate stage={step+1} metal={metal}/><div className="art-watermark">{metal==='gold'?'GOLD STUDY':'SILVER STUDY'} <span>0{step+1} / 08</span></div></div><div className="gold-side"><p className="micro">LAYER {String(step+1).padStart(2,'0')} / 08</p><h2>{item.title}</h2><p className="gold-subtitle">{item.subtitle}</p><p>{item.desc}</p><div className="needle-hint"><Layers size={17}/>{item.needle}</div><div className="step-actions"><button className="btn ghost" disabled={step===0} onClick={()=>setStep(s=>s-1)}><ArrowLeft size={16}/> ก่อนหน้า</button><button className="btn primary" onClick={()=>setStep(s=>Math.min(7,s+1))}>{step===7?'ดูขั้นสุดท้าย':'ขั้นถัดไป'} <ArrowRight size={16}/></button></div></div></div>
- <div className="stage-track">{goldSteps.map((x,i)=><button key={i} onClick={()=>setStep(i)} className={i===step?'selected':''} aria-label={'ขั้นที่ '+(i+1)+' '+x.title}><span>{i+1}</span><small>{x.title}</small></button>)}</div>
- <div className="worksheet-crosslink"><div><span className="micro">PRINTABLE A4</span><strong>อยากลองลงสีเกราะจริง?</strong><p>ดูแผ่นฝึกเกราะทองแบบพิมพ์ได้ พร้อมแบบลอกและลำดับชั้นสี</p></div><button className="btn small quiet" onClick={onWorksheets}>เปิดแผ่นฝึก <ArrowUpRight size={16}/></button></div>
- <div className="gold-palette"><SectionHead eyebrow="VALUE & TEMPERATURE" title={metal==='gold'?'ไล่ค่าแสงแบบทอง':'เปลี่ยนเป็นโทนเงิน'}/><div className="swatches">{(metal==='gold'?goldColors:[{name:'ดำ',hex:'#08090d'},{name:'เทาเข้ม',hex:'#2c313b'},{name:'เทากลาง',hex:'#626a7b'},{name:'เงิน',hex:'#9da4b5'},{name:'แสง',hex:'#dee4eb'},{name:'ขาว',hex:'#fff'}]).map(x=><div key={x.hex} className="swatch"><i style={{background:x.hex}}/><span>{x.name}</span><small>{x.hex}</small></div>)}</div><p className="subtle-note">ค่า HEX ใช้เพื่อออกแบบภาพ ไม่ใช่สูตรผสมหมึกสำหรับสักคนจริง</p></div>
- <div className="toggle-compare"><label><input type="checkbox" checked={compare} onChange={e=>setCompare(e.target.checked)}/> <span>เปรียบเทียบพื้นฐานกับงานสุดท้าย</span></label></div>{compare&&<div className="compare-grid"><div><GoldPlate stage={2} metal={metal}/><span>เส้น + ค่ามืด</span></div><div><GoldPlate stage={8} metal={metal}/><span>โลหะที่มีเงาและไฮไลต์</span></div></div>}
- <Callout>Metallic Effect คือการจัดค่าน้ำหนักภาพ ไม่ใช่การใช้ผงทองหรือสีเมทัลลิกงานศิลปะผสมหมึก ห้ามใช้วัสดุดังกล่าวกับผิวคน</Callout>
- <button className={'btn '+(done?'outline-success':'primary')+' lab-complete'} onClick={()=>{update(p=>({...p,completed:done?p.completed.filter(x=>x!=='gold-lab'):[...p.completed,'gold-lab']}));notify(done?'ยกเลิกสถานะเรียบร้อย':'บันทึกว่าเรียน Gold Lab แล้ว')}}><CheckCircle2 size={18}/>{done?'เรียน Gold Lab แล้ว':'ทำเครื่องหมายว่าฝึกครบ 8 ขั้น'}</button>
- </div>
-}
-function AnubisLab({progress,update,download,onWorksheets}){
- const [stage,setStage]=useState(0),[guides,setGuides]=useState(false);
- const done=progress.completed.includes('anubis-lab');
- return <div className="fade-in"><SectionHead eyebrow="MASTERCLASS / 03" title="ANUBIS." description="งานโหดเข้มที่ใช้ฝึกทั้งโครงสร้าง ดำ–เทา เกราะทอง และไฮไลต์สีแดง"/><div className="master-layout"><div className="master-art"><div className="master-topline"><span>PROJECT 001</span><span>BLACK / GOLD / RED</span></div><AnubisArt stage={stage} showGuides={guides}/><div className="master-art-bottom"><button onClick={()=>setGuides(!guides)} className={'text-action '+(guides?'active':'')}>{guides?'ซ่อนไกด์':'แสดงไกด์โครงสร้าง'}</button><button onClick={download} className="text-action"><Download size={16}/> SVG</button></div></div><div className="master-steps"><p className="eyebrow">STEP-BY-STEP TRAINING</p><h2>จากเส้นแรก<br/>ถึงงานสมบูรณ์</h2><p className="section-desc">แตะทีละขั้นเพื่อดูการเพิ่มส่วนของภาพ เหมาะใช้เป็นต้นแบบศึกษาและลอกลายบนหนังเทียม</p><div className="master-step-list">{ANUBIS_STEPS.map((x,i)=><button key={i} className={'master-step '+(stage===i+1?'active':'')} onClick={()=>setStage(i+1)}><span>{String(i+1).padStart(2,'0')}</span><div><strong>{x[0]}</strong><small>{x[1]}</small></div>{stage===i+1?<Check size={17}/>:<ChevronRight size={16}/>}</button>)}</div><div className="master-actions"><button className="btn ghost" onClick={()=>setStage(s=>Math.max(0,s-1))} disabled={stage===0}><ArrowLeft size={16}/> ก่อนหน้า</button><button className="btn primary" onClick={()=>setStage(s=>Math.min(9,s+1))}>ขั้นถัดไป <ArrowRight size={16}/></button></div></div></div>
- <div className="worksheet-crosslink"><div><span className="micro">PRACTICE MATERIAL</span><strong>เปิดแบบฝึก Anubis ก่อนลงเข็ม</strong><p>แยกใบหน้า หู ตา ปาก และเกราะทองเป็นส่วนย่อยบนหนังเทียม</p></div><button className="btn small quiet" onClick={onWorksheets}>เปิดแผ่นฝึก <ArrowUpRight size={16}/></button></div>
- <div className="master-instructions"><div><span className="micro">TRAINING SIZE</span><h3>A4 / Synthetic Skin</h3><p>เริ่มจากส่วนหัวและตาก่อน อย่าเริ่มทำภาพเต็มชิ้นถ้ายังคุมเส้นและน้ำหนักมืดไม่สม่ำเสมอ</p></div><div><span className="micro">SELF REVIEW</span><h3>3 จุดเช็กงาน</h3><p>รูปทรงอ่านว่า Anubis · เงาดำสร้างมิติจริง · ทองไม่กลบเส้นโครงหลัก</p></div></div>
- <button className={'btn '+(done?'outline-success':'primary')+' lab-complete'} onClick={()=>update(p=>({...p,completed:done?p.completed.filter(x=>x!=='anubis-lab'):[...p.completed,'anubis-lab']}))}><CheckCircle2 size={17}/>{done?'บันทึกงานนี้แล้ว':'ทำเครื่องหมายว่าเสร็จงานฝึก Anubis'}</button>
- </div>
-}
-function Roadmap({progress,update,openLesson}){
- const complete=(day)=>update(p=>({...p,completedDays:p.completedDays.includes(day)?p.completedDays.filter(x=>x!==day):[...p.completedDays,day]}));
- const pct=Math.round(progress.completedDays.length/30*100);
- return <div className="fade-in"><SectionHead eyebrow="YOUR 30 DAY PATH" title="ฝึกทุกวันให้เห็นพัฒนาการ" description="ใช้เวลาประมาณ 20–25 นาทีต่อวัน มีวันทบทวนและพักตามความเหมาะสม"/><div className="roadmap-head"><span>เสร็จแล้ว {progress.completedDays.length} / 30 วัน</span><strong>{pct}%</strong></div><Meter value={pct}/>
- <div className="weeks">{[1,2,3,4,5].map(w=><div className="week" key={w}><div className="week-header"><div><span className="micro">WEEK {String(w).padStart(2,'0')}</span><h3>{['ควบคุมมือ','งานเส้น','แสงและเงา','โลหะและสี','Anubis Project'][w-1]}</h3></div><span>{progress.completedDays.filter(d=>Math.floor((d-1)/6)+1===w).length}/6</span></div><div className="day-list">{thirtyDays.filter(d=>d.week===w).map(d=><button key={d.day} className={'day '+(progress.completedDays.includes(d.day)?'done':'')} onClick={()=>complete(d.day)}><span className="day-number">{progress.completedDays.includes(d.day)?<Check size={16}/>:String(d.day).padStart(2,'0')}</span><div><strong>{d.title}</strong><small>{d.minutes} นาที · {d.focus}</small></div><ChevronRight size={16}/></button>)}</div></div>)}</div><Callout>เครื่องหมายเสร็จเป็นการบันทึกที่ผู้ใช้ยืนยันเอง ไม่ได้วัดคุณภาพการลงเข็มอัตโนมัติ</Callout></div>
-}
-function Toolkit({progress,update}){
- const change=(id)=>update(p=>({...p,inventory:p.inventory.includes(id)?p.inventory.filter(x=>x!==id):[...p.inventory,id]}));
- const pre=[['ตรวจเครื่อง หัวเข็ม และฉลากหมึก','ตรวจสภาพอุปกรณ์ก่อนเริ่ม'],['จัดโต๊ะและบริเวณสะอาด','ใช้แผ่นกั้นพื้นผิวและแยกพื้นที่เปื้อน'],['เตรียมกล่องทิ้งเข็ม','เก็บของมีคมในภาชนะที่เหมาะสม']];
- const during=[['ท่าทางไม่เกร็ง','จัดไฟและระดับแขน'],['ใช้แต่หนังเทียมสำหรับฝึกเอง','ห้ามทดลองบนคน'],['ทบทวนทุกเส้นหลังทำ','ไม่ย้ำจนหนังเทียมเสียโดยไร้เหตุผล']];
- const after=[['จัดการเข็มใช้แล้ว','ลงกล่องของมีคม ไม่ใช้ซ้ำ'],['ทำความสะอาดสถานีฝึก','ทำตามฉลากน้ำยาทำความสะอาด'],['ถ่ายภาพและบันทึกข้อผิดพลาด','เทียบพัฒนาการแบบแสงเดียวกัน']];
- return <div className="fade-in"><SectionHead eyebrow="YOUR WORKSTATION" title="อุปกรณ์และความปลอดภัย" description="เช็กของที่มีอยู่แล้วก่อนซื้อใหม่ และสร้างนิสัยทำงานสะอาดตั้งแต่การฝึก"/><div className="tools-score"><strong>{progress.inventory.length} / {gear.length}</strong><span>อุปกรณ์ที่ทำเครื่องหมายว่ามีแล้ว</span><Meter value={progress.inventory.length/gear.length*100}/></div><div className="inventory">{gear.map(g=><label className="inventory-item" key={g.id}><input type="checkbox" checked={progress.inventory.includes(g.id)} onChange={()=>change(g.id)}/><span className="inventory-checkbox"><Check size={14}/></span><div><strong>{g.label}</strong><p>{g.desc}</p></div></label>)}</div>
- <div className="safety-section"><SectionHead eyebrow="STANDARD ROUTINE" title="ฝึกขั้นตอนให้เป็นนิสัย"/>{[['ก่อนเริ่ม',pre],['ระหว่างฝึก',during],['หลังฝึก',after]].map(([name,items])=><div className="safety-group" key={name}><h3>{name}</h3>{items.map(([title,desc],i)=><div className="safety-row" key={title}><span>0{i+1}</span><div><strong>{title}</strong><p>{desc}</p></div></div>)}</div>)}</div>
- <div className="warning-block"><AlertTriangle size={19}/><div><strong>ไม่ใช่ใบอนุญาตสักบนผิวคน</strong><p>หลักสูตรเว็บและหนังเทียมไม่ทดแทนการฝึกกับช่างที่มีคุณสมบัติ หรือมาตรฐานการป้องกันการติดเชื้อและกฎหมายท้องถิ่น ห้ามนำ Practice Ink หรือสีงานศิลป์ไปฉีดเข้าสู่ผิวคน</p></div></div>
- <div className="resources"><h3>แหล่งอ้างอิงด้านความปลอดภัย</h3>{refs.map(r=><a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer"><div><strong>{r.title}</strong><small>{r.desc}</small></div><ExternalLink size={17}/></a>)}</div></div>
-}
-function Journal({progress,setProgress,addSession,notify,lessonPct,totalMinutes,weekCount}){
- const fileInput=useRef(null),[type,setType]=useState('หนังเทียม'),[minutes,setMinutes]=useState(25),[rating,setRating]=useState(3),[notes,setNotes]=useState('');
- const save=()=>{addSession({type,minutes:Number(minutes),rating,notes:notes.trim()});setNotes('');notify('บันทึกการฝึกเรียบร้อย')};
- const load=async(e)=>{const file=e.target.files?.[0];if(!file)return;try{const value=JSON.parse(await file.text()),imported=validImport(value);if(!imported)throw Error('format');if(window.confirm('ต้องการนำเข้าข้อมูลและแทนที่ความก้าวหน้าปัจจุบันหรือไม่?')){setProgress(imported);notify('นำเข้าข้อมูลเรียบร้อย')}}catch{notify('ไฟล์ข้อมูลไม่ถูกต้อง')}e.target.value=''};
- const reset=()=>{if(window.confirm('ลบข้อมูลการฝึกทั้งหมดที่อยู่บนเบราว์เซอร์นี้? ไม่สามารถย้อนกลับได้')&&window.confirm('ยืนยันลบจริงหรือไม่?')){setProgress({...defaultProgress});notify('ล้างข้อมูลแล้ว')}};
- return <div className="fade-in"><SectionHead eyebrow="PERSONAL TRAINING LOG" title="บันทึกการฝึก" description="ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น ดาวน์โหลดสำรองไว้ได้"/><div className="journal-stats"><div><strong>{lessonPct}%</strong><small>บทเรียน</small></div><div><strong>{totalMinutes}</strong><small>นาทีที่บันทึก</small></div><div><strong>{weekCount}</strong><small>รอบฝึก 7 วัน</small></div></div><div className="journal-layout"><section className="journal-entry"><span className="eyebrow">NEW SESSION</span><h2>เพิ่มบันทึกวันนี้</h2><label>หัวข้อฝึก<select value={type} onChange={e=>setType(e.target.value)}><option>หนังเทียม</option><option>เดินเส้น</option><option>ลงเงา</option><option>เกราะทอง</option><option>Anubis</option><option>การจัดโต๊ะ</option></select></label><label>เวลาที่ฝึก (นาที)<input type="number" value={minutes} onChange={e=>setMinutes(e.target.value)} min="1" max="600"/></label><label>ประเมินความมั่นใจ (1–5)<div className="rating-control">{[1,2,3,4,5].map(n=><button type="button" key={n} className={rating===n?'chosen':''} onClick={()=>setRating(n)}>{n}</button>)}</div></label><label>บันทึกสิ่งที่ฝึก / ปัญหาที่พบ<textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="เช่น เส้น S ยังสั่นตรงมุม เปลี่ยนท่าจับแล้วดีขึ้น…" rows={4}/></label><button className="btn primary full" onClick={save} disabled={!(Number(minutes)>0&&Number(minutes)<=600)}><Plus size={17}/> บันทึกการฝึก</button></section><section className="journal-history"><span className="eyebrow">TRAINING HISTORY</span><h2>รายการล่าสุด</h2>{progress.sessions.length?<div className="history-list">{progress.sessions.map(s=><div className="history-row" key={s.id}><span className="history-pin"/><div><strong>{s.type||'ฝึกสัก'}</strong><small>{new Date(s.at).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})} · {s.minutes||0} นาที</small>{s.notes&&<p>{s.notes}</p>}</div>{s.rating>0&&<span className="history-rating">{s.rating}/5</span>}</div>)}</div>:<div className="empty-state">ยังไม่มีบันทึก กดเพิ่มรอบฝึกแรกเพื่อเริ่มเก็บพัฒนาการ</div>}</section></div>
- <div className="data-settings"><div><h3>จัดการข้อมูล</h3><p>สำรองหรือย้ายข้อมูลไปยังอุปกรณ์อื่นด้วยไฟล์ JSON</p></div><div className="data-buttons"><button className="btn quiet small" onClick={()=>exportProgress(progress)}><Download size={16}/> ส่งออก</button><input hidden ref={fileInput} type="file" accept=".json,application/json" onChange={load}/><button className="btn quiet small" onClick={()=>fileInput.current?.click()}><Upload size={16}/> นำเข้า</button><button className="btn danger small" onClick={reset}><Trash2 size={16}/> ล้างข้อมูล</button></div></div></div>
-}
-export default function Root(){const [track,setTrack]=useState('all');return <App trackFilter={track} setTrack={setTrack}/>;}
