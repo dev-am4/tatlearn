@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-export const defaultProgress={completed:[],bookmarks:[],sessions:[],inventory:[],lastLesson:null,completedDays:[],quizHistory:[]};
+export const defaultProgress={completed:[],worksheetsCompleted:[],bookmarks:[],sessions:[],inventory:[],lastLesson:null,completedDays:[],quizHistory:[]};
 export function useProgress(){
   const [progress,setProgress]=useState(()=>{
     try {const value=JSON.parse(localStorage.getItem('tatlearn-progress-v1')||'null');return value && typeof value==='object'?{...defaultProgress,...value}:defaultProgress;}
@@ -20,5 +20,5 @@ export function validImport(value){
   if(!value||typeof value!=='object'||!value.progress||typeof value.progress!=='object')return null;
   const p=value.progress;
   const list=(key)=>Array.isArray(p[key])?p[key].slice(0,500):[];
-  return {...defaultProgress,completed:list('completed').filter(x=>typeof x==='string'),bookmarks:list('bookmarks').filter(x=>typeof x==='string'),sessions:list('sessions').filter(x=>x&&typeof x==='object'&&typeof x.at==='string'),inventory:list('inventory').filter(x=>typeof x==='string'),completedDays:list('completedDays').filter(x=>Number.isInteger(x)&&x>0&&x<=30),quizHistory:list('quizHistory').filter(x=>x&&typeof x==='object'),lastLesson:typeof p.lastLesson==='string'?p.lastLesson:null};
+  return {...defaultProgress,completed:list('completed').filter(x=>typeof x==='string'),worksheetsCompleted:list('worksheetsCompleted').filter(x=>typeof x==='string'),bookmarks:list('bookmarks').filter(x=>typeof x==='string'),sessions:list('sessions').filter(x=>x&&typeof x==='object'&&typeof x.at==='string'),inventory:list('inventory').filter(x=>typeof x==='string'),completedDays:list('completedDays').filter(x=>Number.isInteger(x)&&x>0&&x<=30),quizHistory:list('quizHistory').filter(x=>x&&typeof x==='object'),lastLesson:typeof p.lastLesson==='string'?p.lastLesson:null};
 }
