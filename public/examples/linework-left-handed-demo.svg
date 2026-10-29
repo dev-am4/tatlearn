@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1016" width="720" height="1016" role="img" aria-label="สาธิตการเดินเส้นด้วยมือซ้ายบนหนังเทียม สามขั้นตอน">
+<defs>
+<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1d1218"/><stop offset="1" stop-color="#080a0f"/></linearGradient>
+<linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5d6bb"/><stop offset="1" stop-color="#bf927e"/></linearGradient>
+<linearGradient id="pen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#47444b"/><stop offset=".45" stop-color="#111216"/><stop offset="1" stop-color="#57535b"/></linearGradient>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#e94d5e"/></marker>
+</defs>
+<rect width="720" height="1016" fill="url(#b)"/>
+<path d="M24 25H696 M24 988H696" stroke="#74323f" stroke-width="1"/>
+<g font-family="Arial,'Noto Sans Thai',sans-serif">
+<text x="32" y="53" fill="#f16b7a" font-size="13" font-weight="700" letter-spacing="2">TATLEARN / LINE CONTROL 01</text>
+<text x="30" y="103" fill="white" font-size="34" font-weight="700">สาธิตการเดินเส้นด้วยมือซ้าย</text>
+<text x="32" y="130" fill="#b8a7b0" font-size="15">ดูภาพ · ทำตามทีละขั้น · ฝึกบนหนังเทียมเท่านั้น</text>
+<!-- stage 1 -->
+<rect x="24" y="157" width="672" height="241" rx="16" fill="#1b171c" stroke="#59313b"/>
+<rect x="41" y="174" width="385" height="207" rx="12" fill="url(#skin)"/>
+<path d="M65 335L376 335" stroke="#ad968b" stroke-width="1.3" stroke-dasharray="5 7"/>
+<path d="M80 316L380 246" stroke="#3f4b58" stroke-width="1.5" stroke-dasharray="7 6"/>
+<g transform="translate(166 288) rotate(-29)">
+<rect x="-22" y="-174" width="44" height="144" rx="18" fill="url(#pen)" stroke="#807983" stroke-width="2"/>
+<rect x="-18" y="-72" width="36" height="39" rx="8" fill="#22232b" stroke="#8b8990" stroke-width="1"/>
+<path d="M-12 -30L12 -30L7 1L0 17L-7 1Z" fill="#8c8f9a" stroke="#c8c8cd" stroke-width="1.5"/>
+</g>
+<path d="M115 299Q145 248 192 269L243 303Q255 323 230 335L192 319L146 338Q112 333 115 299Z" fill="#d5a58e" stroke="#996f62" stroke-width="2"/>
+<circle cx="237" cy="310" r="8" fill="#f9d9c2" stroke="#b0806e"/>
+<text x="450" y="199" font-size="15" fill="#ff6676" font-weight="700">01 / จัดมือและทิศทาง</text>
+<text x="450" y="228" font-size="14" fill="#f2ebed">มือซ้ายจับเครื่องให้ถนัด</text>
+<text x="450" y="255" font-size="14" fill="#f2ebed">มือขวาช่วยยึดแผ่น</text>
+<text x="450" y="282" font-size="14" fill="#f2ebed">มีจุดพยุงมือที่มั่นคง</text>
+<text x="450" y="327" font-size="12" fill="#ae9ca5">ซ้อมแนวเดินเส้นก่อน</text>
+<text x="450" y="348" font-size="12" fill="#ae9ca5">โดยยังไม่ลงหมึก</text>
+<!-- stage 2 -->
+<rect x="24" y="412" width="672" height="241" rx="16" fill="#1b171c" stroke="#59313b"/>
+<rect x="41" y="429" width="385" height="207" rx="12" fill="url(#skin)"/>
+<g stroke="#82756f" stroke-width="1.6" stroke-dasharray="6 7" opacity=".75"><path d="M75 468H385"/><path d="M75 507H385"/><path d="M75 546H385"/><path d="M75 585H385"/></g>
+<path d="M75 469H180" stroke="#131b25" stroke-width="3" stroke-linecap="round"/>
+<path d="M75 508H238" stroke="#131b25" stroke-width="3" stroke-linecap="round"/>
+<path d="M75 547H319" stroke="#131b25" stroke-width="3" stroke-linecap="round"/>
+<path d="M75 586H375" stroke="#131b25" stroke-width="3" stroke-linecap="round"/>
+<path d="M188 465H358" stroke="#e94d5e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="450" y="454" font-size="15" fill="#ff6676" font-weight="700">02 / เดินเส้นตรง</text>
+<text x="450" y="486" font-size="14" fill="#f2ebed">เริ่มจากเส้นสั้นก่อน</text>
+<text x="450" y="513" font-size="14" fill="#f2ebed">รักษาจังหวะให้ต่อเนื่อง</text>
+<text x="450" y="540" font-size="14" fill="#f2ebed">ไม่ย้ำรอยเส้นเดิม</text>
+<text x="450" y="580" font-size="12" fill="#ae9ca5">หมุนแผ่นให้เข้ากับ</text>
+<text x="450" y="602" font-size="12" fill="#ae9ca5">ทิศมือซ้ายที่คุมได้ดี</text>
+<!-- stage 3 -->
+<rect x="24" y="667" width="672" height="260" rx="16" fill="#1b171c" stroke="#59313b"/>
+<rect x="41" y="684" width="385" height="223" rx="12" fill="url(#skin)"/>
+<g stroke="#1b2029" stroke-linecap="round" fill="none">
+<path d="M79 721H389" stroke-width="2.8"/>
+<path d="M79 745H390" stroke-width="2.8"/>
+<path d="M79 769H388" stroke-width="2.8"/>
+<path d="M78 805Q198 876 380 806" stroke-width="2.9"/>
+<path d="M79 867Q158 815 235 868T383 864" stroke-width="2.8"/>
+</g>
+<g fill="#be2d3c"><circle cx="80" cy="722" r="3"/><circle cx="385" cy="769" r="3"/></g>
+<text x="450" y="710" font-size="15" fill="#ff6676" font-weight="700">03 / ตรวจงานและฝึกต่อ</text>
+<text x="450" y="741" font-size="14" fill="#f2ebed">เส้นตรงไม่สั่น</text>
+<text x="450" y="768" font-size="14" fill="#f2ebed">ความหนาสม่ำเสมอ</text>
+<text x="450" y="795" font-size="14" fill="#f2ebed">ต้นและปลายเรียบ</text>
+<text x="450" y="843" font-size="12" fill="#ae9ca5">เมื่อเส้นตรงนิ่งแล้ว</text>
+<text x="450" y="865" font-size="12" fill="#ae9ca5">ต่อด้วยโค้ง C และ S</text>
+<text x="30" y="966" font-size="12" fill="#d2a4af">ภาพแผนผังประกอบ · ไม่ใช่ภาพเครื่องหรือมุมเข็มตามสเกลจริง</text>
+</g>
+</svg>

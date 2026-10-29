@@ -29,15 +29,21 @@ const completedSet=sessions=>new Set((sessions||[]).filter(s=>s.practicePassed==
 const stageTasks=stage=>practicePlan.filter(t=>t.stage===stage);
 const getNext=(stage,passed)=>stageTasks(stage).find(t=>!passed.has(t.id))||stageTasks(stage)[0];
 const lessonVisual={f02:'01-setup',f03:'02-needle',f04:'01-setup',f05:'03-linework',l01:'03-linework',l02:'03-linework',l03:'03-linework',s01:'04-shading',s03:'04-shading',c01:'05-color',c02:'08-gold',c03:'09-metals',c06:'10-anubis'};
+function StudyImage({src,fallback,alt='',className='',loading='lazy'}){ 
+ const [current,setCurrent]=useState(src);
+ useEffect(()=>setCurrent(src),[src]);
+ const onFail=()=>{if(fallback&&current!==fallback)setCurrent(fallback)};
+ return <img src={current} alt={alt} className={className} loading={loading} onError={onFail}/>;
+}
 function SmallEmpty({children}){return <p className="studio-empty">{children}</p>}
 function LessonPage({id,onBack,progress,toggleCompleted,onPractice}){
  const lesson=lessons.find(l=>l.id===id);
  if(!lesson)return <button className="studio-link" onClick={onBack}>กลับไปคลังความรู้</button>;
- const visual=lessonVisual[id];
+ const visual=id==='l01'?'/examples/linework-left-handed-demo.webp':lessonVisual[id]?'/visual-lessons/'+lessonVisual[id]+'.svg':null;
  return <div className="studio-article">
  <button className="studio-back" onClick={onBack}><ArrowLeft size={17}/> คลังความรู้</button>
  <h1>{lesson.title}</h1>
- {visual&&<img className="studio-article-image" src={'/visual-lessons/'+visual+'.svg'} alt={'ภาพสอน '+lesson.title}/>}
+ {visual&&<StudyImage className={'studio-article-image '+(id==='l01'?'studio-portrait-poster':'')} src={visual} fallback={id==='l01'?'/examples/linework-left-handed-demo.svg':null} alt={'ภาพสอน '+lesson.title}/>}
  <h3>หลักการ</h3><p>{lesson.core}</p>
  <h3>ลองทำตาม</h3><p>{lesson.task}</p>
  <h3>จุดที่ควรระวัง</h3><p>{lesson.tip}</p>
@@ -74,7 +80,7 @@ function PracticeSession({task,progress,onBack,onSaved,onNext}){
  return <div className="studio-session">
    <button className="studio-back" onClick={onBack}><ArrowLeft size={17}/> กลับไปเลือกแบบฝึก</button>
    <div className="studio-session-heading"><span>{stageFor(task.stage).title}</span><h1>{task.title}</h1></div>
-   <button className="studio-main-image" onClick={()=>setLarge(true)} aria-label="ขยายภาพต้นแบบ"><img src={task.image} alt={'ภาพตัวอย่างสำหรับ '+task.title}/><span><ImageIcon size={16}/> ดูภาพใหญ่</span></button>
+   <button className={"studio-main-image "+(task.demoImage?"studio-poster-main":"")} onClick={()=>setLarge(true)} aria-label="ขยายภาพต้นแบบ"><StudyImage src={task.demoImage||task.image} fallback={task.image} alt={"ภาพตัวอย่างสำหรับ "+task.title} loading="eager"/><span><ImageIcon size={16}/> ดูภาพใหญ่</span></button>
    <div className="studio-step-heading"><span>01</span><h2>ดูตัวอย่างแล้วทำตาม</h2></div>
    <StepManual task={task}/>
    {task.sheet&&<a className="studio-sheet-action" href={task.sheet} download={'tatlearn-'+task.id+'.svg'}><Download size={17}/> โหลดแบบฝึกสำหรับพิมพ์ A4 <ChevronRight size={17}/></a>}
@@ -89,13 +95,13 @@ function PracticeSession({task,progress,onBack,onSaved,onNext}){
    <div className="studio-checklist">{task.checks.map((c,i)=><label key={i}><input type="checkbox" checked={checks[i]} onChange={e=>{setChecks(x=>x.map((v,j)=>i===j?e.target.checked:v));setResult(null)}}/><span className="studio-checkbox"><Check size={15}/></span><span>{c}</span></label>)}</div>
    <p className="studio-note-small">เช็กเฉพาะข้อที่ทำได้จริง ถ้ายังไม่ผ่านสามารถกลับมาฝึกซ้ำได้</p>
    <div className="studio-photo-tools"><label className="studio-photo-button"><ImageIcon size={17}/> เปรียบเทียบกับรูปที่ฝึก<input hidden type="file" accept="image/*" onChange={changePhoto}/></label>{ownPhoto&&<button className="studio-link" onClick={()=>setOwnPhoto(null)}>เอารูปออก</button>}</div>
-   {ownPhoto&&<div className="studio-compare"><img src={task.image} alt="ภาพตัวอย่างต้นแบบ"/><img src={ownPhoto} alt="รูปชิ้นงานผู้ใช้"/></div>}
+   {ownPhoto&&<div className="studio-compare"><StudyImage src={task.demoImage||task.image} fallback={task.image} alt="ภาพตัวอย่างต้นแบบ"/><img src={ownPhoto} alt="รูปชิ้นงานผู้ใช้"/></div>}
    <label className="studio-note-field">บันทึกจุดที่ควรแก้ (ไม่บังคับ)<textarea rows={2} placeholder="เช่น เส้นโค้งช่วงท้ายยังสั่น" value={notes} onChange={e=>setNotes(e.target.value)}/></label>
    <button className="studio-primary studio-save" disabled={count<=0} onClick={save}><CheckCircle2 size={17}/> บันทึกผลการฝึก</button>
    {result&&<div className="studio-result"><strong>{result.passed?'ผ่านการประเมินตนเอง':'บันทึกแล้ว — ฝึกเพิ่มได้'}</strong><p>ได้ {result.score}/3 ข้อ · ใช้เวลา {clock(result.seconds)}</p><button className="studio-link" onClick={onNext}>ไปแบบฝึกถัดไป <ArrowRight size={17}/></button></div>}
    {attempts.length>0&&<p className="studio-attempts">เคยฝึก {attempts.length} ครั้ง {attempts.some(s=>s.practicePassed)?'· ผ่านแล้ว':'· ยังฝึกต่อได้'}</p>}
    <p className="studio-safety-note"><Info size={15}/> แบบฝึกสำหรับหนังเทียม ไม่ใช่การรับรองความพร้อมสักบนผิวคน</p>
-   {large&&<div className="studio-lightbox" role="dialog" aria-modal="true" aria-label="ภาพต้นแบบขยาย"><button className="studio-lightbox-close" onClick={()=>setLarge(false)} aria-label="ปิด"><X size={23}/></button><img src={task.image} alt={'ภาพตัวอย่าง '+task.title}/></div>}
+   {large&&<div className="studio-lightbox" role="dialog" aria-modal="true" aria-label="ภาพต้นแบบขยาย"><button className="studio-lightbox-close" onClick={()=>setLarge(false)} aria-label="ปิด"><X size={23}/></button><StudyImage src={task.demoImage||task.image} fallback={task.image} alt={"ภาพตัวอย่าง "+task.title}/></div>}
  </div>;
 }
 export default function App(){
@@ -120,9 +126,9 @@ export default function App(){
    {screen==='home'&&<>
     <div className="studio-home-title"><h1>ฝึกสักทีละขั้น</h1><p>ดูตัวอย่าง → ทำตาม → จับเวลา → ตรวจงาน</p></div>
     <nav className="studio-stages" aria-label="เลือกระดับฝึก">{stages.map(s=><button key={s.id} className={stage===s.id?'active':''} onClick={()=>openStage(s.id)}><span>{s.index}</span>{s.title}</button>)}</nav>
-    <section className="studio-continue"><div><span className="studio-label">ฝึกต่อ</span><h2>{focus.title}</h2><p>{focus.minutes} นาที · {stageFor(focus.stage).title}</p><button className="studio-primary" onClick={()=>openTask(focus.id)}>เริ่มฝึก <ArrowRight size={17}/></button></div><img src={focus.image} alt={focus.title}/></section>
+    <section className="studio-continue"><div><span className="studio-label">ฝึกต่อ</span><h2>{focus.title}</h2><p>{focus.minutes} นาที · {stageFor(focus.stage).title}</p><button className="studio-primary" onClick={()=>openTask(focus.id)}>เริ่มฝึก <ArrowRight size={17}/></button></div><StudyImage src={focus.demoImage||focus.image} fallback={focus.image} alt={focus.title}/></section>
     <div className="studio-list-head"><h2>{stageFor(stage).title}</h2><span>{stageCompleted}/{stageTasks(stage).length} ผ่าน</span></div>
-    <div className="studio-task-list">{stageTasks(stage).map((task,i)=><button key={task.id} onClick={()=>openTask(task.id)}><img src={task.image} loading="lazy" alt=""/><span className="studio-task-info"><strong>{pad(i+1)} · {task.title}</strong><small>{task.minutes} นาที</small></span>{passed.has(task.id)?<CheckCircle2 className="studio-pass" size={21}/>:<ChevronRight className="studio-chevron" size={20}/>}</button>)}</div>
+    <div className="studio-task-list">{stageTasks(stage).map((task,i)=><button key={task.id} onClick={()=>openTask(task.id)}><StudyImage src={task.demoImage||task.image} fallback={task.image} alt=""/><span className="studio-task-info"><strong>{pad(i+1)} · {task.title}</strong><small>{task.minutes} นาที</small></span>{passed.has(task.id)?<CheckCircle2 className="studio-pass" size={21}/>:<ChevronRight className="studio-chevron" size={20}/>}</button>)}</div>
     <div className="studio-next-stage">{stage!=='full'&&<button onClick={()=>openStage(stage==='basics'?'colors':'full')}>ดูขั้นต่อไป: {stage==='basics'?'ฝึกสี':'ฝึกภาพเต็ม'} <ArrowRight size={17}/></button>}</div>
    </>}
    {screen==='practice'&&currentTask&&<PracticeSession key={activeId} task={currentTask} progress={progress} onBack={()=>openStage(currentTask.stage)} onNext={nextTask} onSaved={addSession}/>}

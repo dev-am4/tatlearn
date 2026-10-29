@@ -3,7 +3,7 @@ export const stages=[
 {id:'colors',index:'02',title:'ฝึกสี',detail:'สีทั่วไป · ทอง · เงิน · โรสโกลด์'},
 {id:'full',index:'03',title:'ฝึกภาพเต็ม',detail:'รวมทุกเทคนิคเป็นหนึ่งภาพ'}
 ];
-const item=(id,stage,title,minutes,image,sheet,lesson,steps,checks,tag='')=>({id,stage,title,minutes,image,sheet,lesson,steps,checks,tag});
+const item=(id,stage,title,minutes,image,sheet,lesson,steps,checks,tag='',demoImage=null)=>({id,stage,title,minutes,image,sheet,lesson,steps,checks,tag,demoImage});
 export const practicePlan=[
 item('clean','basics','จัดโต๊ะและรู้จักอุปกรณ์',10,'/visual-lessons/01-setup.svg',null,'f04',
  ['ตรวจเครื่องและ Cartridge ที่รองรับ','แยกพื้นที่สะอาดกับของที่ใช้แล้ว','เตรียมกล่องทิ้งเข็มก่อนฝึก'],
@@ -11,9 +11,9 @@ item('clean','basics','จัดโต๊ะและรู้จักอุป
 item('stencil','basics','ลองลอกลายบนหนังเทียม',15,'/visual-lessons/03-linework.svg','/worksheets/01-linework.svg','f05',
  ['เลือกแบบเส้นตรงง่าย ๆ','พิมพ์ลายและทดลองวางบนหนังเทียม','ตรวจภาพที่ติดก่อนเริ่มฝึก'],
  ['ลายไม่เลอะ','จุดเริ่มและปลายเห็นชัด','ตำแหน่งลายไม่เอียง']),
-item('lines','basics','เดินเส้นตรง',15,'/visual-lessons/03-linework.svg','/worksheets/01-linework.svg','l01',
+item('lines','basics','เดินเส้นตรง',15,'/examples/linework-left-handed-demo.svg','/worksheets/01-linework.svg','l01',
  ['เริ่มจากเส้นสั้น 10 เส้น','ต่อด้วยเส้นยาว 20 เส้น','เปรียบเทียบความนิ่งทุกแถว'],
- ['เส้นไม่สั่น','ความหนาสม่ำเสมอ','จุดเริ่มและจบแม่น']),
+ ['เส้นไม่สั่น','ความหนาสม่ำเสมอ','จุดเริ่มและจบแม่น'],'','/examples/linework-left-handed-demo.webp'),
 item('curve','basics','เส้นโค้ง C และ S',20,'/visual-lessons/03-linework.svg','/worksheets/01-linework.svg','l02',
  ['วางแนวโค้งด้วยสายตาก่อน','ฝึกโค้ง C 10 เส้น และ S 10 เส้น','เปรียบเทียบโค้งที่เรียบที่สุด'],
  ['โค้งไม่หักมุม','เส้นต่อเนื่อง','ไม่มีรอยย้ำหนา']),
