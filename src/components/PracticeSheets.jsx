@@ -43,9 +43,13 @@ export const worksheetCatalog=[
     tasks:['เปรียบเทียบภาพสีทองกับเงินโดยดูค่าแสง','ทำทรงกลมขาวดำก่อนเพิ่มความอุ่นของสี','กำหนดทิศทางแสงเพียงทิศเดียว'],
     checks:['จุดแสงชัด','มีพื้นที่มืดรับกับจุดสว่าง','สีไม่แบนทั้งชิ้น'],
     lesson:'c03'
-  }
+  },
+  {id:'needle-3rl',file:'/worksheets/07-3rl.svg',number:'07',title:'หัวเข็ม 3RL — เส้นละเอียด',subtitle:'FINE LINE CARTRIDGE',category:'needle',categoryName:'หัวเข็ม',minutes:20,level:'เริ่มต้น',description:'ตัวอย่างตำแหน่งกลุ่มเข็ม 3RL และการฝึกเส้นละเอียดบนหนังเทียม พร้อมเปรียบเทียบรอยสั่น รอยซ้อน และปลายเส้นงอ',tasks:['พิมพ์แบบฝึก A4 หรือเปิดเป็นไกด์','ฝึกเส้นตรงและโค้งทีละแถว','เทียบรอยผิดพลาดและจดเหตุผล'],checks:['เส้นนิ่ง','ปลายไม่ตวัด','ไม่ซ้อนเส้นหนา'],lesson:'l01'},
+  {id:'needle-5rl',file:'/worksheets/08-5rl.svg',number:'08',title:'หัวเข็ม 5RL — เส้นกลาง',subtitle:'STANDARD OUTLINING',category:'needle',categoryName:'หัวเข็ม',minutes:20,level:'เริ่มต้น',description:'ฝึกคุมเส้นขนาดกลาง เส้นขนาน วงรี และการต่อเส้นให้เรียบ',tasks:['ทำเส้นขนาน 16 เส้น','ฝึกวงรี 12 วง','ตรวจรอยต่อและเส้นที่ขาด'],checks:['ระยะคงที่','วงรีเรียบ','ไม่มีช่วงขาด'],lesson:'l03'},
+  {id:'needle-7rl',file:'/worksheets/09-7rl.svg',number:'09',title:'หัวเข็ม 7RL — เส้นกรอบ',subtitle:'BOLD OUTLINE',category:'needle',categoryName:'หัวเข็ม',minutes:25,level:'กลาง',description:'ฝึกเส้นขอบที่เด่นขึ้นและการจัดลำดับน้ำหนักเส้นสำหรับ Geometric และเกราะ Anubis',tasks:['ฝึกกรอบสี่เหลี่ยม 8 ชิ้น','ทำวงแหวน 8 วง','ฝึกขอบเกราะ Anubis 6 ชิ้น'],checks:['เส้นหนาสม่ำเสมอ','มุมไม่ปูด','ขอบไม่ซ้อน'],lesson:'l05'},
+  {id:'needle-9rm',file:'/worksheets/10-9rm.svg',number:'10',title:'หัวเข็ม 9RM — แสงและเงา',subtitle:'CURVED MAGNUM SHADING',category:'needle',categoryName:'หัวเข็ม',minutes:30,level:'กลาง',description:'ฝึกการเกลี่ยค่าน้ำหนักและถมพื้นที่ด้วย Curved Magnum บนหนังเทียม',tasks:['ทำแถบเงา 6 ค่า','ฝึกทรงกลม 3 ลูก','ถมพื้นที่ 3 ช่องแล้วตรวจ'],checks:['เงาไม่เป็นแถบ','ถมไม่ด่าง','ขอบเงาคุมได้'],lesson:'s03'}
 ];
-const filters=[['all','ทั้งหมด'],['line','เดินเส้น'],['shade','ลงเงา'],['color','สีและแสง'],['project','Anubis']];
+const filters=[['all','ทั้งหมด'],['line','เดินเส้น'],['shade','ลงเงา'],['color','สีและแสง'],['project','Anubis'],['needle','หัวเข็ม']];
 export function printPracticeSheet(file){
   const pop=window.open(file,'_blank','noopener,noreferrer');
   if(!pop){window.alert('เบราว์เซอร์บล็อกการเปิดแท็บใหม่ สามารถดาวน์โหลดไฟล์ SVG แล้วสั่งพิมพ์ได้');}
@@ -69,7 +73,7 @@ export default function PracticeSheets({progress,update,onLesson,onGold,onAnubis
   const activeIndex=active?worksheetCatalog.findIndex(x=>x.id===active.id):0;
   const move=(step)=>{const item=worksheetCatalog[(activeIndex+step+worksheetCatalog.length)%worksheetCatalog.length];setActive(item);setZoom(100);setChecks({})};
   return <div className="worksheets fade-in">
-    <div className="section-head"><div><p className="eyebrow">PRACTICE LIBRARY / PRINTABLE A4</p><h2>คลังแบบฝึกจริง</h2><p className="section-desc">แบบฝึกพิมพ์ A4 เปิดดูเต็มหน้า ซูม และนำไปลอกลายเพื่อฝึกบนหนังเทียม</p></div><span className="sheet-count">{completed.length}/6 ฝึกแล้ว</span></div>
+    <div className="section-head"><div><p className="eyebrow">PRACTICE LIBRARY / PRINTABLE A4</p><h2>คลังแบบฝึกจริง</h2><p className="section-desc">แบบฝึกพิมพ์ A4 เปิดดูเต็มหน้า ซูม และนำไปลอกลายเพื่อฝึกบนหนังเทียม</p></div><span className="sheet-count">{completed.filter(id=>worksheetCatalog.some(w=>w.id===id)).length}/{worksheetCatalog.length} ฝึกแล้ว</span></div>
     <div className="guide-select filter-tabs" role="group" aria-label="กรองแบบฝึก">{filters.map(([id,name])=><button key={id} className={'seg '+(filter===id?'selected':'')} onClick={()=>setFilter(id)}>{name}</button>)}</div>
     <div className="sheet-grid">
     {list.map(sheet=><div className="sheet-card" key={sheet.id}>
@@ -77,9 +81,9 @@ export default function PracticeSheets({progress,update,onLesson,onGold,onAnubis
       <div className="sheet-details"><span className="micro">{sheet.subtitle} / {sheet.minutes} MIN</span><div className="sheet-title-row"><button onClick={()=>open(sheet)}><h3>{sheet.title}</h3></button>{completed.includes(sheet.id)&&<CheckCircle2 size={18} color="#7ed1a1"/>}</div><p>{sheet.description}</p><div className="sheet-actions"><button className="text-action" onClick={()=>open(sheet)}>ดูแบบ <ArrowUpRight size={15}/></button><a className="text-action" href={sheet.file} download={'tatlearn-'+sheet.id+'.svg'}><Download size={15}/> SVG</a></div></div>
     </div>)}
     </div>
-    <div className="sheet-note"><BookOpen size={18}/><div><strong>ลำดับฝึกที่แนะนำ</strong><p>คุมเส้น → แสงเงา → Dotwork → เกราะทอง → Anubis → ฝึกแสงสะท้อนเพิ่มเติม แบบฝึกเหล่านี้ไม่ได้ทดแทนการเรียนกับช่างก่อนสักผิวคนจริง</p></div></div>
+    <div className="sheet-note"><BookOpen size={18}/><div><strong>ลำดับฝึกที่แนะนำ</strong><p>คุมเส้น → ทดลองหัวเข็ม → แสงเงา → Dotwork → เกราะทอง → Anubis แบบฝึกเหล่านี้ไม่ได้ทดแทนการเรียนกับช่างก่อนสักผิวคนจริง</p></div></div>
     {active&&<div className="sheet-modal" role="dialog" aria-modal="true" aria-label={'แบบฝึก '+active.title}>
-      <div className="sheet-modal-top"><div><span className="micro">WORKSHEET {active.number} / 06</span><strong>{active.title}</strong></div><div className="sheet-modal-controls"><button className="icon-btn" title="ก่อนหน้า" aria-label="ก่อนหน้า" onClick={()=>move(-1)}><ChevronLeft size={20}/></button><button className="icon-btn" title="ถัดไป" aria-label="ถัดไป" onClick={()=>move(1)}><ChevronRight size={20}/></button><button className="icon-btn close-sheet" title="ปิด" aria-label="ปิด" onClick={()=>setActive(null)}><X size={23}/></button></div></div>
+      <div className="sheet-modal-top"><div><span className="micro">WORKSHEET {active.number} / {worksheetCatalog.length}</span><strong>{active.title}</strong></div><div className="sheet-modal-controls"><button className="icon-btn" title="ก่อนหน้า" aria-label="ก่อนหน้า" onClick={()=>move(-1)}><ChevronLeft size={20}/></button><button className="icon-btn" title="ถัดไป" aria-label="ถัดไป" onClick={()=>move(1)}><ChevronRight size={20}/></button><button className="icon-btn close-sheet" title="ปิด" aria-label="ปิด" onClick={()=>setActive(null)}><X size={23}/></button></div></div>
       <div className="sheet-modal-main">
         <div className="sheet-image-scroll"><div className="sheet-image-container" style={{width:zoom+'%',minWidth:zoom===100?'min(100%, 560px)':undefined}}><img src={active.file} alt={'แผ่นฝึก '+active.title} draggable={false}/></div></div>
         <aside className="sheet-instructions"><p className="eyebrow">PRACTICE GUIDE</p><h3>{active.title}</h3><p>{active.description}</p><p className="micro">ฝึกตามลำดับ</p><ol>{active.tasks.map(t=><li key={t}>{t}</li>)}</ol><p className="micro">ตรวจงานตัวเอง</p><div className="sheet-checks">{active.checks.map((t,i)=><label key={i}><input type="checkbox" checked={!!checks[i]} onChange={e=>setChecks(v=>({...v,[i]:e.target.checked}))}/><span>{t}</span></label>)}</div>

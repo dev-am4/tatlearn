@@ -20,7 +20,7 @@ jobs:
           python - <<'PY'
           import pathlib,xml.etree.ElementTree as ET
           root=pathlib.Path('public/worksheets')
-          expected=['01-linework.svg','02-shading.svg','03-metallic-gold.svg','04-anubis.svg','05-dotwork.svg','06-metal-light.svg']
+          expected=['01-linework.svg','02-shading.svg','03-metallic-gold.svg','04-anubis.svg','05-dotwork.svg','06-metal-light.svg','07-3rl.svg','08-5rl.svg','09-7rl.svg','10-9rm.svg']
           for name in expected:
               path=root/name
               assert path.exists(), f'Missing: {name}'

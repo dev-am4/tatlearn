@@ -14,7 +14,7 @@ npm run dev
 ## Main features
 
 - 34 Thai technique lessons: foundations, linework, black & grey, color, hygiene and career preparation
-- 6 illustrated A4 practice worksheets in `public/worksheets/` as scalable, printable/downloadable SVG files
+- 10 illustrated A4 practice worksheets in `public/worksheets/` as scalable, printable/downloadable SVG files
 - Image-first mobile worksheet library: full-screen preview, zoom, download, practice instructions, completion checklists, related lessons
 - Digital line practice canvas with touch, mouse and stylus input; guides, undo/redo and PNG export
 - 8-stage metallic gold/silver graphic demonstration (optical contrast, not actual metallic pigments)
@@ -33,8 +33,21 @@ npm run dev
 | `04-anubis.svg` | Anubis outline, shaded reference, armor shapes |
 | `05-dotwork.svg` | point densities and geometric symmetry |
 | `06-metal-light.svg` | gold and silver reflection studies |
+| `07-3rl.svg` | 3RL fine line control |
+| `08-5rl.svg` | 5RL general outlines |
+| `09-7rl.svg` | 7RL bold outlines |
+| `10-9rm.svg` | 9RM soft shading |
 
 Use the Worksheets tab to open a sheet at full size, zoom, open for printing, save a standalone SVG and record completion. SVG is resolution independent and suits A4 or smaller practice stencils. These are **new hand-coded vector exercises based on the requested topics**; they are not binary copies of images from the conversation.
+
+## Needle Studio / synthetic-skin exercises
+
+- Visual closeups of 3RL, 5RL, 7RL and 9RM group arrangements (diagrams are illustrative only, not to scale)
+- Side-by-side ideal vs. common mistake examples: wobble, overlaps, breaks, irregular outlines, banding, patchy shading and harsh edges
+- 4 printable A4 needle-specific SVG worksheets: `07-3rl.svg`, `08-5rl.svg`, `09-7rl.svg`, `10-9rm.svg`
+- Three practice drills for each cartridge, manual 3-criterion 0–6 rubric, practice-note entry and local-only ephemeral photo preview
+- Saved practice sessions in the existing journal and browser-local JSON export/import
+- The site does not specify universal voltage, needle penetration depth or any real-skin technique
 
 ## Deploy to Cloudflare Pages
 
