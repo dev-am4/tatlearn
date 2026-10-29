@@ -40,6 +40,16 @@ npm run dev
 
 Use the Worksheets tab to open a sheet at full size, zoom, open for printing, save a standalone SVG and record completion. SVG is resolution independent and suits A4 or smaller practice stencils. These are **new hand-coded vector exercises based on the requested topics**; they are not binary copies of images from the conversation.
 
+## Visual Academy — all colors
+
+- 10 locally hosted, self-contained vector study graphics under `public/visual-lessons/`: setup, needle groups, line control, black-and-grey shading, red/blue/green/purple color studies, common color mistakes, blends and gemstone lighting, metallic gold, silver/rose gold, and Anubis
+- Dedicated image-first visual learning page, accessible from mobile bottom navigation and desktop sidebar; thumbnail gallery and searchable categories
+- Full-screen visual guide with learn-by-steps, manual self-check, related lesson links, and progress stored in the same browser as the rest of the app
+- Interactive study palette: red/orange, blue/teal, green, purple, gold, silver and rose gold with values shown visually, **not tattoo ink recipes**
+- Relevant diagrams embedded in existing technique lessons and linked from the dashboard
+- These are structured vector illustrations of the topics, **not the original generated PNG posters**. They keep text selectable and avoid the inconsistent equipment depictions in AI-generated images.
+- Digital previews are educational, not a substitute for hands-on instruction or professional infection-control training.
+
 ## Needle Studio / synthetic-skin exercises
 
 - Visual closeups of 3RL, 5RL, 7RL and 9RM group arrangements (diagrams are illustrative only, not to scale)

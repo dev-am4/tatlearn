@@ -28,6 +28,14 @@ jobs:
               assert el.tag.endswith('svg'), f'Invalid SVG: {name}'
               assert el.attrib.get('viewBox')=='0 0 744 1052',f'A4 ratio missing: {name}'
               print(f'Validated {name}')
+          visual_root=pathlib.Path('public/visual-lessons')
+          visual_names=sorted(visual_root.glob('*.svg'))
+          assert len(visual_names)==10, f'Expected 10 visual lessons, got {len(visual_names)}'
+          for path in visual_names:
+              el=ET.parse(path).getroot()
+              assert el.tag.endswith('svg'), f'Invalid visual SVG: {path}'
+              assert el.attrib.get('viewBox')=='0 0 960 600',f'Wrong visual aspect ratio: {path}'
+              print(f'Validated visual {path.name}')
           PY
       - name: Build production
         run: npm run build
