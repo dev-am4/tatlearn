@@ -7,6 +7,7 @@ import VisualAcademy from './components/VisualAcademy.jsx';
 import PracticeSheets from './components/PracticeSheets.jsx';
 import NeedleStudio from './components/NeedleStudio.jsx';
 import PracticeCanvas from './components/PracticeCanvas.jsx';
+import StepManual from './components/StepManual.jsx';
 import {KnowledgeTest,SleevePlanner} from './components/Extras.jsx';
 
 const MENU=[
@@ -29,7 +30,7 @@ const stageTasks=stage=>practicePlan.filter(t=>t.stage===stage);
 const getNext=(stage,passed)=>stageTasks(stage).find(t=>!passed.has(t.id))||stageTasks(stage)[0];
 const lessonVisual={f02:'01-setup',f03:'02-needle',f04:'01-setup',f05:'03-linework',l01:'03-linework',l02:'03-linework',l03:'03-linework',s01:'04-shading',s03:'04-shading',c01:'05-color',c02:'08-gold',c03:'09-metals',c06:'10-anubis'};
 function SmallEmpty({children}){return <p className="studio-empty">{children}</p>}
-function LessonPage({id,onBack,progress,toggleCompleted}){
+function LessonPage({id,onBack,progress,toggleCompleted,onPractice}){
  const lesson=lessons.find(l=>l.id===id);
  if(!lesson)return <button className="studio-link" onClick={onBack}>กลับไปคลังความรู้</button>;
  const visual=lessonVisual[id];
@@ -41,6 +42,7 @@ function LessonPage({id,onBack,progress,toggleCompleted}){
  <h3>ลองทำตาม</h3><p>{lesson.task}</p>
  <h3>จุดที่ควรระวัง</h3><p>{lesson.tip}</p>
  <h3>ตรวจงาน</h3><p>{lesson.check}</p>
+ {practicePlan.some(t=>t.lesson===lesson.id)&&<button className="studio-secondary-button studio-lesson-practice" onClick={()=>onPractice(practicePlan.find(t=>t.lesson===lesson.id).id)}>เปิดแบบฝึกและคำสอนทีละขั้น <ArrowRight size={16}/></button>}
  <button className="studio-primary" onClick={()=>toggleCompleted(lesson.id)}>{progress.completed.includes(lesson.id)?'เรียนแล้ว ✓':'บันทึกว่าอ่านบทนี้แล้ว'} <Check size={16}/></button>
  </div>
 }
@@ -74,7 +76,7 @@ function PracticeSession({task,progress,onBack,onSaved,onNext}){
    <div className="studio-session-heading"><span>{stageFor(task.stage).title}</span><h1>{task.title}</h1></div>
    <button className="studio-main-image" onClick={()=>setLarge(true)} aria-label="ขยายภาพต้นแบบ"><img src={task.image} alt={'ภาพตัวอย่างสำหรับ '+task.title}/><span><ImageIcon size={16}/> ดูภาพใหญ่</span></button>
    <div className="studio-step-heading"><span>01</span><h2>ดูตัวอย่างแล้วทำตาม</h2></div>
-   <ol className="studio-instructions">{task.steps.map((s,i)=><li key={i}>{s}</li>)}</ol>
+   <StepManual task={task}/>
    {task.sheet&&<a className="studio-sheet-action" href={task.sheet} download={'tatlearn-'+task.id+'.svg'}><Download size={17}/> โหลดแบบฝึกสำหรับพิมพ์ A4 <ChevronRight size={17}/></a>}
    <div className="studio-step-heading"><span>02</span><h2>จับเวลาลองทำ</h2></div>
    <div className="studio-timer">
@@ -126,7 +128,7 @@ export default function App(){
    {screen==='practice'&&currentTask&&<PracticeSession key={activeId} task={currentTask} progress={progress} onBack={()=>openStage(currentTask.stage)} onNext={nextTask} onSaved={addSession}/>}
    {screen!=='home'&&screen!=='practice'&&<div className="studio-secondary">
      <button className="studio-back" onClick={()=>openStage(stage)}><ArrowLeft size={17}/> กลับหน้าเรียน</button>
-     {screen==='knowledge'&&(selectedLesson?<LessonPage id={selectedLesson} onBack={()=>setSelectedLesson(null)} progress={progress} toggleCompleted={toggleCompleted}/>:<div><h1>คลังความรู้</h1><label className="studio-search"><Search size={18}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาเรื่องที่อยากรู้"/></label><div className="studio-simple-list">{lessons.filter(l=>(l.title+' '+l.core).toLowerCase().includes(search.toLowerCase().trim())).map(l=><button key={l.id} onClick={()=>setSelectedLesson(l.id)}><span>{l.title}</span><ChevronRight size={18}/></button>)}</div></div>)}
+     {screen==='knowledge'&&(selectedLesson?<LessonPage id={selectedLesson} onBack={()=>setSelectedLesson(null)} progress={progress} toggleCompleted={toggleCompleted} onPractice={openTask}/>:<div><h1>คลังความรู้</h1><label className="studio-search"><Search size={18}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาเรื่องที่อยากรู้"/></label><div className="studio-simple-list">{lessons.filter(l=>(l.title+' '+l.core).toLowerCase().includes(search.toLowerCase().trim())).map(l=><button key={l.id} onClick={()=>setSelectedLesson(l.id)}><span>{l.title}</span><ChevronRight size={18}/></button>)}</div></div>)}
      {screen==='visuals'&&<VisualAcademy progress={progress} update={update} onLesson={openLesson} onGo={id=>{if(id==='gold'){openTask('gold')}else if(id==='anubis'){openTask('anubis-full')}else openMenuPage(id)}}/>}
      {screen==='worksheets'&&<PracticeSheets progress={progress} update={update} onLesson={openLesson} onGold={()=>openTask('gold')} onAnubis={()=>openTask('anubis-full')}/>}
      {screen==='needles'&&<NeedleStudio progress={progress} addSession={addSession} onLesson={openLesson} onWorksheets={()=>openMenuPage('worksheets')}/>}
