@@ -10,7 +10,9 @@ const initial=[
 export function KnowledgeTest({progress,update}){
  const [index,setIndex]=useState(0),[answer,setAnswer]=useState(null),[score,setScore]=useState(0),[finished,setFinished]=useState(false);
  const question=questions[index];
- const answerIsCorrect=answer===question[5];
+ const options=useMemo(()=>{const raw=question.slice(1,5);const offset=(index*3+1)%4;return raw.map((_,i)=>raw[(i+offset)%4]);},[index]);
+ const correctIndex=options.indexOf(question[question[5]+1]);
+ const answerIsCorrect=answer===correctIndex;
  const next=()=>{
   const nextScore=score+(answerIsCorrect?1:0);
   if(index===questions.length-1){setScore(nextScore);setFinished(true);update(p=>({...p,quizHistory:[{id:Date.now().toString(36),date:new Date().toISOString(),score:nextScore,total:questions.length},...p.quizHistory].slice(0,50)}))}
@@ -20,7 +22,7 @@ export function KnowledgeTest({progress,update}){
  return <div className="fade-in extra-page"><div className="section-head"><div><p className="eyebrow">KNOWLEDGE CHECK / 20 QUESTIONS</p><h2>ทบทวนความเข้าใจ</h2><p className="section-desc">คำถามพื้นฐานเกี่ยวกับเส้น เข็ม แสงเงา สีทอง และความปลอดภัย</p></div></div>
  {finished?<div className="quiz-finish"><p className="micro">SESSION COMPLETED</p><div className="quiz-score">{score}<span>/ {questions.length}</span></div><h2>{score>=16?'เยี่ยมมาก!':'ทบทวนอีกนิด'}</h2><p>ตอบถูก {Math.round(score/questions.length*100)}% · บันทึกผลในสมุดฝึกแล้ว</p><button className="btn primary" onClick={restart}><RotateCcw size={16}/> ทำแบบทดสอบอีกครั้ง</button></div>:<>
  <div className="quiz-progress"><span>ข้อ {index+1} จาก {questions.length}</span><span>{Math.round(index/questions.length*100)}%</span></div><div className="meter"><span style={{width:(index/questions.length*100)+'%'}}/></div>
- <div className="quiz-body"><span className="micro">QUESTION {String(index+1).padStart(2,'0')}</span><h2>{question[0]}</h2><div className="quiz-options">{question.slice(1,5).map((opt,i)=><button key={i} className={'quiz-option '+(answer===i?'chosen':'')+(answer!==null&&i===question[5]?' correct':'')+(answer===i&&!answerIsCorrect?' wrong':'')} disabled={answer!==null} onClick={()=>setAnswer(i)}><span>{String.fromCharCode(65+i)}</span><strong>{opt}</strong>{answer!==null&&i===question[5]&&<CheckCircle2 size={18}/>}</button>)}</div>{answer!==null&&<div className="quiz-explained"><strong>{answerIsCorrect?'ถูกต้อง':'เฉลยที่ถูกต้อง'}</strong><p>{question[6]}</p><button className="btn primary" onClick={next}>{index===questions.length-1?'ดูผลคะแนน':'ข้อต่อไป'} <ArrowRight size={16}/></button></div>}</div></>}
+ <div className="quiz-body"><span className="micro">QUESTION {String(index+1).padStart(2,'0')}</span><h2>{question[0]}</h2><div className="quiz-options">{options.map((opt,i)=><button key={i} className={'quiz-option '+(answer===i?'chosen':'')+(answer!==null&&i===correctIndex?' correct':'')+(answer===i&&!answerIsCorrect?' wrong':'')} disabled={answer!==null} onClick={()=>setAnswer(i)}><span>{String.fromCharCode(65+i)}</span><strong>{opt}</strong>{answer!==null&&i===question[5]&&<CheckCircle2 size={18}/>}</button>)}</div>{answer!==null&&<div className="quiz-explained"><strong>{answerIsCorrect?'ถูกต้อง':'เฉลยที่ถูกต้อง'}</strong><p>{question[6]}</p><button className="btn primary" onClick={next}>{index===questions.length-1?'ดูผลคะแนน':'ข้อต่อไป'} <ArrowRight size={16}/></button></div>}</div></>}
  </div>
 }
 export function SleevePlanner(){
@@ -34,7 +36,7 @@ export function SleevePlanner(){
  <defs><linearGradient id="sleeve-shell" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#3a2129"/><stop offset=".4" stopColor="#130e15"/><stop offset=".72" stopColor="#212029"/><stop offset="1" stopColor="#0b0a0e"/></linearGradient><linearGradient id="sleeve-red" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#a92f41"/><stop offset="1" stopColor="#eb6570"/></linearGradient></defs>
  <path d="M85 75Q132 36 208 70L218 138Q196 204 192 281L173 391L160 484Q159 541 150 609Q120 631 102 609L97 480L90 387Q67 280 69 208Z" stroke="#65414a" strokeWidth="2" fill="url(#sleeve-shell)"/>
  {guide&&<g stroke="#bc5f6b" strokeWidth="1" opacity=".34" strokeDasharray="3 6"><path d="M144 56V622"/><path d="M75 180h138M82 320h115M93 457h78M100 560h63"/></g>}
- {parts.map((p,i)=>{if(!p.visible)return null;let y=145+i*125;return <g key={p.id} onClick={()=>setFocus(p.id)} style={{cursor:'pointer'}} opacity={focus===p.id?1:.6}>
+ {parts.map((p,i)=>{if(!p.visible)return null;let y=520-i*125;return <g key={p.id} onClick={()=>setFocus(p.id)} style={{cursor:'pointer'}} opacity={focus===p.id?1:.6}>
   <circle cx="142" cy={y} r={p.id==='anubis'?44:35} stroke={p.accent} strokeWidth={focus===p.id?2.6:1} fill="none"/>
   <circle cx="142" cy={y} r={p.id==='anubis'?36:28} stroke={p.accent} strokeDasharray="3 8" opacity=".7" fill="none"/>
   {p.id==='anubis'&&<path d={'M117 '+(y+20)+'l1-37 19 18 17-25 10 25 12 13-28 16-19-3Z'} stroke={p.accent} strokeWidth="3" fill="none"/>}

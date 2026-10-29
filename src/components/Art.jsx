@@ -12,7 +12,7 @@ export function AnubisArt({stage=9,mini=false,showGuides=false}){
   </defs>
   {s>=7&&<><circle cx="186" cy="223" r="142" stroke="#ac2533" strokeWidth="2" opacity=".45"/><circle cx="186" cy="223" r="133" stroke="#b62c38" strokeWidth=".55" opacity=".33"/><circle cx="186" cy="223" r="106" stroke="#9c2935" strokeDasharray="2 12" opacity=".32"/><path d="M50 223h272 M186 85v277" stroke="#8d1e2a" strokeWidth=".7" opacity=".3"/></>}
   {s===0&&<g stroke="#b3a2a2" strokeWidth="1.35" opacity=".8"><path d="M142 180L122 29L183 150L215 42L235 178L284 225L330 258L315 282L265 295L218 316L227 398L95 398L133 290Z"/><ellipse cx="210" cy="234" rx="91" ry="89"/><path d="M111 295L268 295M100 400l155-1M144 240l145 12M141 200l100-35"/></g>}
-  {s>=1&&<g stroke="#c5acac" strokeWidth="s>=2?1.2:2" opacity={s>=2?.1:1}><path d="M126 177L115 26L178 137L213 42L241 175L286 225L335 255L327 273L294 287L275 306L239 317L241 408H90L130 298Z"/></g>}
+  {s>=1&&<g stroke="#c5acac" strokeWidth={s>=2?1.2:2} opacity={s>=2?.1:1}><path d="M126 177L115 26L178 137L213 42L241 175L286 225L335 255L327 273L294 287L275 306L239 317L241 408H90L130 298Z"/></g>}
   {s>=2&&<>
    <path d="M87 426C86 382 111 352 133 327L136 286L222 275L248 322C286 340 299 370 316 426Z" fill="url(#a-body)" stroke="#30303a" strokeWidth="3"/>
    <path d="M151 197L115 27L179 140L212 44L242 188C260 213 281 219 289 234L335 256Q340 266 329 271L293 282Q282 293 269 305L252 318L216 322Q170 332 146 301L128 262Q119 228 151 197Z" fill="url(#a-face)" stroke="#5d5355" strokeWidth="2.2"/>
